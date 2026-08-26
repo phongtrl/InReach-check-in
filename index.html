@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>InReach Check-In / Check-Out</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand-mark">◎</span>
+      <div>
+        <h1>InReach Check-In</h1>
+        <p class="tagline">Garmin satellite device fleet log</p>
+      </div>
+    </div>
+    <nav class="tabs">
+      <button class="tab active" data-tab="checkinout">Check In / Out</button>
+      <button class="tab" data-tab="devices">Devices</button>
+      <button class="tab" data-tab="people">Users</button>
+      <button class="tab" data-tab="history">History</button>
+      <button class="tab" data-tab="reports">Reports</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ============ CHECK IN / OUT ============ -->
+    <section id="checkinout" class="panel active">
+      <div class="stats" id="stats"></div>
+      <div class="model-breakdown labelled" id="availableModels"></div>
+      <div class="grid">
+        <div class="card">
+          <h2>New entry</h2>
+          <form id="logForm" class="form">
+            <div class="field">
+              <label for="logDevice">Device</label>
+              <select id="logDevice" required></select>
+              <small class="hint" id="deviceStatusHint"></small>
+            </div>
+
+            <div class="field">
+              <label for="logPerson">Person</label>
+              <input type="text" id="logPerson" list="peopleList" placeholder="Type a name"
+                autocomplete="off" />
+              <datalist id="peopleList"></datalist>
+              <small class="hint">You can type a name now — known names will suggest here later.</small>
+            </div>
+
+            <div class="field">
+              <label>Action</label>
+              <div class="segmented">
+                <label class="seg">
+                  <input type="radio" name="action" value="out" checked />
+                  <span>Check out</span>
+                </label>
+                <label class="seg">
+                  <input type="radio" name="action" value="in" />
+                  <span>Check in</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="logPlan">Subscription</label>
+              <select id="logPlan">
+                <option value="Suspend">Suspend</option>
+                <option value="Enabled/Basic">Enabled/Basic</option>
+                <option value="Advanced">Advanced</option>
+                <option value="Premier">Premier</option>
+                <option value="Deactivated">Deactivated</option>
+              </select>
+              <small class="hint">The subscription this device will be set to.</small>
+            </div>
+
+            <div class="field">
+              <label>Date &amp; time</label>
+              <div class="datepicker" id="datepicker">
+                <button type="button" class="dp-display" id="logDateDisplay" aria-haspopup="dialog" aria-expanded="false">
+                  <span class="dp-cal-icon" aria-hidden="true"></span>
+                  <span id="logDateText">Select date</span>
+                </button>
+                <div class="dp-popover" id="calendarPopover" role="dialog" aria-label="Choose date and time" hidden>
+                  <div class="dp-head">
+                    <button type="button" class="dp-nav" id="dpPrev" aria-label="Previous month">&#8249;</button>
+                    <div class="dp-title" id="dpTitle"></div>
+                    <button type="button" class="dp-nav" id="dpNext" aria-label="Next month">&#8250;</button>
+                  </div>
+                  <div class="dp-weekdays" id="dpWeekdays"></div>
+                  <div class="dp-days" id="dpDays"></div>
+                  <div class="dp-time">
+                    <label for="dpTime">Time</label>
+                    <input type="time" id="dpTime" />
+                  </div>
+                  <div class="dp-actions">
+                    <button type="button" class="btn ghost" id="dpNow">Now</button>
+                    <button type="button" class="btn primary" id="dpDone">Done</button>
+                  </div>
+                </div>
+              </div>
+              <input type="hidden" id="logDate" required />
+            </div>
+
+            <div class="field">
+              <label for="logNotes">Notes (optional)</label>
+              <textarea id="logNotes" rows="2" placeholder="Trip, destination, condition…"></textarea>
+            </div>
+
+            <button type="submit" class="btn primary">Save entry</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>Currently checked out</h2>
+          <div id="checkedOutList" class="status-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PEOPLE ============ -->
+    <section id="people" class="panel">
+      <div class="card card-narrow">
+        <h2>Users</h2>
+        <div id="peopleManage" class="user-list"></div>
+      </div>
+    </section>
+
+    <!-- ============ DEVICES ============ -->
+    <section id="devices" class="panel">
+      <div class="grid">
+        <div class="card">
+          <h2 id="deviceFormTitle">Add device</h2>
+          <form id="deviceForm" class="form">
+            <input type="hidden" id="deviceId" />
+            <div class="field">
+              <label for="deviceLabel">Label / unit name</label>
+              <input type="text" id="deviceLabel" placeholder="e.g. Mini II #11" required />
+            </div>
+
+            <div class="field">
+              <label for="deviceModel">Model</label>
+              <select id="deviceModel" required>
+                <option value="inReach Mini 2">inReach Mini 2</option>
+                <option value="inReach Messenger">inReach Messenger</option>
+                <option value="inReach Explorer+">inReach Explorer+</option>
+                <option value="inReach SE+">inReach SE+</option>
+                <option value="GPSMAP 66i">GPSMAP 66i</option>
+                <option value="GPSMAP 67i">GPSMAP 67i</option>
+                <option value="Montana 700i">Montana 700i</option>
+                <option value="Montana 750i">Montana 750i</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="deviceImei">IMEI <span class="opt">(optional)</span></label>
+              <input type="text" id="deviceImei" inputmode="numeric"
+                maxlength="15" placeholder="15 digits" />
+              <small class="hint">15 digit IMEI number found on the device. Leave blank to add later.</small>
+            </div>
+
+            <div class="field">
+              <label for="devicePlan">Subscription plan</label>
+              <select id="devicePlan" required>
+                <option value="Suspend">Suspend</option>
+                <option value="Enabled/Basic">Enabled/Basic</option>
+                <option value="Advanced">Advanced</option>
+                <option value="Premier">Premier</option>
+                <option value="Deactivated">Deactivated</option>
+              </select>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn primary" id="deviceSubmitBtn">Add device</button>
+              <button type="button" class="btn ghost" id="deviceCancelBtn" hidden>Cancel</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h2>Fleet <span class="count" id="deviceCount"></span></h2>
+            <div class="head-actions">
+              <input type="search" id="deviceSearch" class="search" placeholder="Search label, IMEI, model…" />
+              <button type="button" class="btn ghost" id="seedFleetBtn">Load default fleet</button>
+            </div>
+          </div>
+          <div class="model-breakdown" id="deviceModels"></div>
+          <div class="table-wrap">
+            <table id="deviceTable" class="table">
+              <thead>
+                <tr>
+                  <th>Label</th>
+                  <th>Model</th>
+                  <th>IMEI</th>
+                  <th>Plan</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <p id="noDevices" class="empty">No devices yet. Add one on the left.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ HISTORY ============ -->
+    <section id="history" class="panel">
+      <div class="card">
+        <div class="card-head">
+          <h2>Log history</h2>
+          <div class="filters">
+            <select id="historyDeviceFilter"><option value="">All devices</option></select>
+            <select id="historyActionFilter">
+              <option value="">All actions</option>
+              <option value="out">Check out</option>
+              <option value="in">Check in</option>
+            </select>
+            <input type="search" id="historySearch" class="search" placeholder="Search person / notes…" />
+            <button type="button" class="btn ghost" id="exportBtn">Export CSV</button>
+            <button type="button" class="btn ghost" id="backupBtn">Download backup</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table id="historyTable" class="table">
+            <thead>
+              <tr>
+                <th>Date &amp; time</th>
+                <th>Action</th>
+                <th>Device</th>
+                <th>Person</th>
+                <th>Notes</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p id="noHistory" class="empty">No log entries yet.</p>
+      </div>
+    </section>
+
+    <!-- ============ REPORTS ============ -->
+    <section id="reports" class="panel">
+      <div class="card">
+        <div class="card-head">
+          <h2>Activity &amp; statistics</h2>
+          <div class="filters">
+            <select id="reportYear"></select>
+            <button type="button" class="btn ghost" id="reportExportBtn">Export CSV</button>
+            <button type="button" class="btn ghost" id="reportPdfBtn">Download PDF</button>
+          </div>
+        </div>
+        <div class="stats" id="reportSummary"></div>
+      </div>
+
+      <div class="grid grid-even reports-grid">
+        <div class="card">
+          <h2>By quarter</h2>
+          <div class="table-wrap">
+            <table id="quarterTable" class="table">
+              <thead>
+                <tr><th>Quarter</th><th>Check-outs</th><th>Check-ins</th><th>Total</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <h2>By month</h2>
+          <div class="table-wrap">
+            <table id="monthTable" class="table">
+              <thead>
+                <tr><th>Month</th><th>Check-outs</th><th>Check-ins</th><th>Total</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <div id="planMenu" class="context-menu" role="menu" hidden></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
