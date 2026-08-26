@@ -287,23 +287,43 @@ function resetDeviceForm() {
 $('#deviceCancelBtn').addEventListener('click', resetDeviceForm);
 $('#deviceSearch').addEventListener('input', renderDevices);
 
-/* Seed the default fleet: inReach Mini II 11-51 plus a GPSMAP 66i. Skips labels already present. */
-function seedMiniFleet() {
-  const fleet = [{ label: 'GPSMAP 66i', model: 'GPSMAP 66i', imei: GPSMAP_IMEI }];
-  for (let n = 11; n <= 51; n++) {
-    const suffix = BLACK_UNITS.has(n) ? ' (black)' : '';
-    fleet.push({ label: `inReach Mini II ${n}${suffix}`, model: 'inReach Mini 2', imei: IMEI_MAP[n] || '' });
+/* Ensures the full default fleet exists and known IMEIs are filled. Returns count added. */
+function addMissingFleet() {
+  const findUnit = (n) => devices.find((d) => Number(d.label.match(/inReach Mini II (\d+)/)?.[1]) === n);
+  let added = 0;
+  let changed = false;
+
+  // GPSMAP 66i
+  let gps = devices.find((d) => d.label === 'GPSMAP 66i');
+  if (!gps) {
+    devices.push({ id: uid(), label: 'GPSMAP 66i', model: 'GPSMAP 66i', imei: GPSMAP_IMEI, plan: 'Enabled/Basic' });
+    added++;
+  } else if (!gps.imei) {
+    gps.imei = GPSMAP_IMEI;
+    changed = true;
   }
 
-  let added = 0;
-  fleet.forEach((f) => {
-    if (devices.some((d) => d.label === f.label)) return;
-    devices.push({ id: uid(), label: f.label, model: f.model, imei: f.imei, plan: 'Enabled' });
-    added++;
-  });
+  // inReach Mini II 11-51
+  for (let n = 11; n <= 51; n++) {
+    const suffix = BLACK_UNITS.has(n) ? ' (black)' : '';
+    const existing = findUnit(n);
+    if (!existing) {
+      devices.push({ id: uid(), label: `inReach Mini II ${n}${suffix}`, model: 'inReach Mini 2', imei: IMEI_MAP[n] || '', plan: 'Enabled/Basic' });
+      added++;
+      continue;
+    }
+    if (!existing.imei && IMEI_MAP[n]) { existing.imei = IMEI_MAP[n]; changed = true; }
+    if (BLACK_UNITS.has(n) && !/\(black\)/i.test(existing.label)) { existing.label = `inReach Mini II ${n} (black)`; changed = true; }
+  }
 
+  if (added || changed) save(STORE.devices, devices);
+  return added;
+}
+
+/* Seed the default fleet. Skips units already present. */
+function seedMiniFleet() {
+  const added = addMissingFleet();
   if (!added) { toast('Default fleet already loaded.'); return; }
-  save(STORE.devices, devices);
   renderAll();
   toast(`Added ${added} device${added === 1 ? '' : 's'}.`);
 }
@@ -1357,6 +1377,11 @@ function init() {
       devices.push({ id: uid(), label: 'GPSMAP 66i', model: 'GPSMAP 66i', imei: '', plan: 'Enabled/Basic' });
       save(STORE.devices, devices);
     }
+  }
+  // Guarantee the complete default fleet exists, even on browsers seeded before it was finalized.
+  if (!localStorage.getItem('inreach.fleet.v3')) {
+    localStorage.setItem('inreach.fleet.v3', '1');
+    addMissingFleet();
   }
   renderAll();
 }
