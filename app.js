@@ -103,6 +103,16 @@ function knownPeople() {
   return [...new Set(logs.map((l) => l.person).filter(Boolean))].sort();
 }
 
+// Devices currently checked out to a given person.
+function devicesForPerson(person) {
+  return devices
+    .filter((d) => {
+      const st = deviceStatus(d.id);
+      return st.out && st.person === person;
+    })
+    .sort((a, b) => a.label.localeCompare(b.label));
+}
+
 /* ---------- Tabs ---------- */
 function initTabs() {
   $$('.tab').forEach((tab) => {
@@ -740,8 +750,18 @@ function renderPeopleManage() {
     }
     return `
       <div class="user-item">
-        <span class="user-name">${escapeHtml(p)}</span>
-        <button class="btn icon" data-rename="${escapeHtml(p)}" title="Rename">✎</button>
+        <div class="user-main">
+          <span class="user-name">${escapeHtml(p)}</span>
+          <button class="btn icon" data-rename="${escapeHtml(p)}" title="Rename">✎</button>
+        </div>
+        ${(() => {
+          const assigned = devicesForPerson(p);
+          return assigned.length
+            ? `<div class="user-devices">${assigned
+                .map((d) => `<span class="device-chip">${escapeHtml(d.label)}</span>`)
+                .join('')}</div>`
+            : '<p class="user-devices empty-note">No devices currently checked out to them.</p>';
+        })()}
       </div>`;
   }).join('');
   if (editingPerson) {
