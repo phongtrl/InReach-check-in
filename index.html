@@ -261,13 +261,66 @@
         <div class="stats" id="reportSummary"></div>
       </div>
 
+      <div class="card reports-grid">
+        <div class="card-head">
+          <h2>Monthly activity</h2>
+          <div class="chart-legend">
+            <span class="lg out"><i></i>Check-outs</span>
+            <span class="lg in"><i></i>Check-ins</span>
+          </div>
+        </div>
+        <div class="bar-chart" id="monthChart"></div>
+        <p id="noReportActivity" class="empty" hidden>No activity recorded for this year.</p>
+      </div>
+
+      <div class="grid grid-even reports-grid">
+        <div class="card">
+          <h2>Fleet snapshot</h2>
+          <div class="donut-block">
+            <div class="donut" id="fleetDonut"></div>
+            <ul class="donut-legend" id="fleetDonutLegend"></ul>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <h2>Most active users</h2>
+            <span class="count" id="topUsersCount"></span>
+          </div>
+          <div id="topUsers" class="rank-list"></div>
+          <p id="noTopUsers" class="empty" hidden>No user activity this year.</p>
+        </div>
+      </div>
+
+      <div class="card reports-grid">
+        <div class="card-head">
+          <h2>Subscription licences</h2>
+          <span class="count" id="activeLicenceCount"></span>
+        </div>
+        <p class="licence-note">Live subscription status across the fleet, plus how often each licence has been checked out — this year and historically.</p>
+        <div class="licence-chips" id="licenceChips"></div>
+        <div class="table-wrap">
+          <table id="licenceTable" class="table">
+            <thead>
+              <tr>
+                <th>Licence / plan</th>
+                <th>Status</th>
+                <th>Currently assigned</th>
+                <th>Used this year</th>
+                <th>Used all-time</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
       <div class="grid grid-even reports-grid">
         <div class="card">
           <h2>By quarter</h2>
           <div class="table-wrap">
             <table id="quarterTable" class="table">
               <thead>
-                <tr><th>Quarter</th><th>Check-outs</th><th>Check-ins</th><th>Total</th></tr>
+                <tr><th>Quarter</th><th>Check-outs</th><th>Check-ins</th><th>Total</th><th>Share</th></tr>
               </thead>
               <tbody></tbody>
             </table>
@@ -278,7 +331,7 @@
           <div class="table-wrap">
             <table id="monthTable" class="table">
               <thead>
-                <tr><th>Month</th><th>Check-outs</th><th>Check-ins</th><th>Total</th></tr>
+                <tr><th>Month</th><th>Check-outs</th><th>Check-ins</th><th>Total</th><th>Share</th></tr>
               </thead>
               <tbody></tbody>
             </table>

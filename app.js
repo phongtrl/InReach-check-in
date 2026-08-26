@@ -9,6 +9,8 @@ const STORE = {
 };
 
 const PLANS = ['Suspend', 'Enabled/Basic', 'Advanced', 'Premier', 'Deactivated'];
+// Plans that represent a live, billable satellite subscription.
+const ACTIVE_PLANS = new Set(['Enabled/Basic', 'Advanced', 'Premier']);
 // CSS-safe token for a plan name (e.g. "Enabled/Basic" -> "EnabledBasic").
 const planClass = (plan) => String(plan).replace(/[^a-z0-9]/gi, '');
 
@@ -625,6 +627,7 @@ logForm.addEventListener('submit', (e) => {
     action,
     date: new Date(dateVal).toISOString(),
     notes: $('#logNotes').value.trim(),
+    plan: selectedPlan,
   });
   save(STORE.logs, logs);
 
@@ -998,6 +1001,57 @@ function quarterlyCounts(months) {
   return q;
 }
 
+// Subscription-licence picture: current assignment plus check-out history per plan.
+// Older logs predate per-entry plan capture, so they fall back to the device's
+// current plan for the usage tallies.
+function licenceStats(year) {
+  const byId = new Map(devices.map((d) => [d.id, d]));
+  const blank = () => PLANS.reduce((o, p) => { o[p] = 0; return o; }, {});
+  const current = blank();
+  devices.forEach((d) => { current[d.plan] = (current[d.plan] || 0) + 1; });
+  const activeCount = devices.filter((d) => ACTIVE_PLANS.has(d.plan)).length;
+
+  const usedYear = blank();
+  const usedAll = blank();
+  logs.forEach((l) => {
+    if (l.action !== 'out') return;
+    const plan = l.plan || byId.get(l.deviceId)?.plan;
+    if (!plan) return;
+    usedAll[plan] = (usedAll[plan] || 0) + 1;
+    if (new Date(l.date).getFullYear() === year) usedYear[plan] = (usedYear[plan] || 0) + 1;
+  });
+
+  return { current, activeCount, usedYear, usedAll };
+}
+
+function licenceStatusLabel(plan) {
+  if (ACTIVE_PLANS.has(plan)) return 'Active';
+  if (plan === 'Suspend') return 'Suspended';
+  if (plan === 'Deactivated') return 'Deactivated';
+  return '—';
+}
+
+// Renders the on-page "Subscription licences" card.
+function renderLicences(year) {
+  const s = licenceStats(year);
+  $('#activeLicenceCount').textContent = `${s.activeCount} active`;
+
+  const chips = PLANS
+    .filter((p) => s.current[p] > 0)
+    .map((p) => `<span class="licence-chip ${planClass(p)}"><strong>${s.current[p]}</strong> ${escapeHtml(p)}</span>`)
+    .join('');
+  $('#licenceChips').innerHTML = chips || '<span class="muted-cell">No devices yet.</span>';
+
+  $('#licenceTable tbody').innerHTML = PLANS.map((p) => `
+    <tr>
+      <td><span class="badge plan ${planClass(p)}">${escapeHtml(p)}</span></td>
+      <td>${licenceStatusLabel(p)}</td>
+      <td>${s.current[p] || 0}</td>
+      <td>${s.usedYear[p] || 0}</td>
+      <td><strong>${s.usedAll[p] || 0}</strong></td>
+    </tr>`).join('');
+}
+
 function renderReports() {
   const years = reportYears();
   const yearSel = $('#reportYear');
@@ -1013,40 +1067,173 @@ function renderReports() {
 
   const totalOut = months.reduce((s, c) => s + c.out, 0);
   const totalIn = months.reduce((s, c) => s + c.in, 0);
-  const people = new Set(
-    logs.filter((l) => new Date(l.date).getFullYear() === year).map((l) => l.person)
-  ).size;
+  const totalActivity = totalOut + totalIn;
+  const yearLogs = logs.filter((l) => new Date(l.date).getFullYear() === year);
+  const people = new Set(yearLogs.map((l) => l.person).filter(Boolean)).size;
   const busiestIdx = months.reduce(
     (best, c, i, arr) => (c.out + c.in > arr[best].out + arr[best].in ? i : best), 0);
-  const busiest = totalOut + totalIn ? MONTHS[busiestIdx].slice(0, 3) : '—';
+  const busiest = totalActivity ? MONTHS[busiestIdx].slice(0, 3) : '—';
+  const activeMonths = months.filter((c) => c.out + c.in > 0).length;
+  const avgPerMonth = activeMonths ? Math.round(totalActivity / activeMonths) : 0;
 
   $('#reportSummary').innerHTML = [
     { label: 'Check-outs', value: totalOut, cls: 'out' },
     { label: 'Check-ins', value: totalIn, cls: 'in' },
+    { label: 'Total activity', value: totalActivity, cls: 'accent' },
     { label: 'People', value: people, cls: 'plain' },
     { label: 'Busiest month', value: busiest, cls: 'accent' },
+    { label: 'Avg / active month', value: avgPerMonth, cls: 'plain' },
   ].map((c) => `
     <div class="stat ${c.cls}">
       <span class="stat-value">${c.value}</span>
       <span class="stat-label">${c.label}</span>
     </div>`).join('');
 
-  $('#quarterTable tbody').innerHTML = quarters.map((c, i) => `
+  renderMonthChart(months);
+  renderFleetDonut();
+  renderTopUsers(yearLogs);
+  renderLicences(year);
+
+  const peak = Math.max(...quarters.map((c) => c.out + c.in), 1);
+  $('#quarterTable tbody').innerHTML = quarters.map((c, i) => {
+    const total = c.out + c.in;
+    return `
     <tr>
       <td>${QUARTER_NAMES[i]}</td>
       <td>${c.out}</td>
       <td>${c.in}</td>
-      <td><strong>${c.out + c.in}</strong></td>
-    </tr>`).join('');
+      <td><strong>${total}</strong></td>
+      <td>${shareBar(c.out, c.in, peak)}</td>
+    </tr>`;
+  }).join('');
 
-  $('#monthTable tbody').innerHTML = months.map((c, m) => `
+  const peakMonth = Math.max(...months.map((c) => c.out + c.in), 1);
+  $('#monthTable tbody').innerHTML = months.map((c, m) => {
+    const total = c.out + c.in;
+    return `
     <tr>
       <td>${MONTHS[m]}</td>
       <td>${c.out}</td>
       <td>${c.in}</td>
-      <td><strong>${c.out + c.in}</strong></td>
-    </tr>`).join('');
+      <td><strong>${total}</strong></td>
+      <td>${shareBar(c.out, c.in, peakMonth)}</td>
+    </tr>`;
+  }).join('');
 }
+
+// Horizontal split bar showing out/in proportion relative to the busiest row.
+function shareBar(out, inn, peak) {
+  const total = out + inn;
+  if (!total) return '<span class="muted-cell">—</span>';
+  const scale = (total / peak) * 100;
+  const outPct = (out / total) * 100;
+  const inPct = (inn / total) * 100;
+  return `
+    <div class="share-bar" style="width:${scale.toFixed(1)}%" title="${out} out · ${inn} in">
+      <span class="seg-out" style="width:${outPct.toFixed(1)}%"></span>
+      <span class="seg-in" style="width:${inPct.toFixed(1)}%"></span>
+    </div>`;
+}
+
+// Vertical grouped bar chart of check-outs and check-ins for each month.
+function renderMonthChart(months) {
+  const chart = $('#monthChart');
+  const empty = $('#noReportActivity');
+  const peak = Math.max(...months.map((c) => Math.max(c.out, c.in)), 1);
+  const hasData = months.some((c) => c.out || c.in);
+  if (empty) empty.hidden = hasData;
+  chart.hidden = !hasData;
+  chart.innerHTML = months.map((c, m) => {
+    const outH = (c.out / peak) * 100;
+    const inH = (c.in / peak) * 100;
+    return `
+      <div class="bar-col" title="${MONTHS[m]}: ${c.out} out, ${c.in} in">
+        <div class="bar-stack">
+          <span class="bar out" style="height:${outH.toFixed(1)}%">${c.out ? `<em>${c.out}</em>` : ''}</span>
+          <span class="bar in" style="height:${inH.toFixed(1)}%">${c.in ? `<em>${c.in}</em>` : ''}</span>
+        </div>
+        <span class="bar-label">${MONTHS[m].slice(0, 1)}</span>
+      </div>`;
+  }).join('');
+}
+
+// Live fleet composition: available, checked out, deactivated.
+function renderFleetDonut() {
+  const out = devices.filter((d) => d.plan !== 'Deactivated' && deviceStatus(d.id).out).length;
+  const deactivated = devices.filter((d) => d.plan === 'Deactivated').length;
+  const available = devices.length - out - deactivated;
+  const total = devices.length || 1;
+
+  const parts = [
+    { label: 'Available', value: available, color: 'var(--sage)' },
+    { label: 'Checked out', value: out, color: 'var(--clay)' },
+    { label: 'Deactivated', value: deactivated, color: 'var(--muted)' },
+  ];
+
+  let acc = 0;
+  const stops = parts
+    .filter((p) => p.value > 0)
+    .map((p) => {
+      const start = (acc / total) * 360;
+      acc += p.value;
+      const end = (acc / total) * 360;
+      return `${p.color} ${start.toFixed(1)}deg ${end.toFixed(1)}deg`;
+    })
+    .join(', ');
+
+  const donut = $('#fleetDonut');
+  donut.style.background = devices.length
+    ? `conic-gradient(${stops})`
+    : 'var(--surface-2)';
+  donut.innerHTML = `<div class="donut-hole"><strong>${devices.length}</strong><span>devices</span></div>`;
+
+  $('#fleetDonutLegend').innerHTML = parts.map((p) => {
+    const pct = devices.length ? Math.round((p.value / total) * 100) : 0;
+    return `
+      <li>
+        <span class="dot" style="background:${p.color}"></span>
+        <span class="lg-label">${p.label}</span>
+        <span class="lg-value">${p.value} · ${pct}%</span>
+      </li>`;
+  }).join('');
+}
+
+// Per-person activity ranking for the selected year (top 8).
+function renderTopUsers(yearLogs) {
+  const byPerson = {};
+  yearLogs.forEach((l) => {
+    if (!l.person) return;
+    const p = (byPerson[l.person] ||= { out: 0, in: 0 });
+    p[l.action]++;
+  });
+  const ranked = Object.entries(byPerson)
+    .map(([name, c]) => ({ name, out: c.out, in: c.in, total: c.out + c.in }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 8);
+
+  const list = $('#topUsers');
+  const empty = $('#noTopUsers');
+  $('#topUsersCount').textContent = ranked.length ? ranked.length : '';
+  empty.hidden = ranked.length > 0;
+  list.hidden = ranked.length === 0;
+
+  const peak = Math.max(...ranked.map((r) => r.total), 1);
+  list.innerHTML = ranked.map((r, i) => `
+    <div class="rank-row">
+      <span class="rank-num">${i + 1}</span>
+      <div class="rank-body">
+        <div class="rank-head">
+          <span class="rank-name">${escapeHtml(r.name)}</span>
+          <span class="rank-total">${r.total}</span>
+        </div>
+        <div class="rank-bar">
+          <span class="seg-out" style="width:${((r.out / peak) * 100).toFixed(1)}%"></span>
+          <span class="seg-in" style="width:${((r.in / peak) * 100).toFixed(1)}%"></span>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
 
 function exportReport() {
   const year = selectedReportYear();
@@ -1077,11 +1264,9 @@ function exportReport() {
   URL.revokeObjectURL(url);
 }
 
-/* Build a self-contained, print-ready HTML report (statistics + live fleet status). */
-function buildReportHtml() {
+/* Gather every figure shown in the Reports tab, for the native-text PDF export. */
+function computeReportData() {
   const now = new Date();
-  const pad = (n) => String(n).padStart(2, '0');
-  const stamp = `${pad(now.getDate())}${pad(now.getMonth() + 1)}${String(now.getFullYear()).slice(-2)}`;
 
   const total = devices.length;
   const deactivated = devices.filter((d) => d.plan === 'Deactivated').length;
@@ -1108,107 +1293,352 @@ function buildReportHtml() {
   const quarters = quarterlyCounts(months);
   const totalOut = months.reduce((s, c) => s + c.out, 0);
   const totalIn = months.reduce((s, c) => s + c.in, 0);
-  const people = new Set(
-    logs.filter((l) => new Date(l.date).getFullYear() === year).map((l) => l.person)
-  ).size;
+  const totalActivity = totalOut + totalIn;
+  const yearLogs = logs.filter((l) => new Date(l.date).getFullYear() === year);
+  const people = new Set(yearLogs.map((l) => l.person).filter(Boolean)).size;
   const busiestIdx = months.reduce(
     (best, c, i, arr) => (c.out + c.in > arr[best].out + arr[best].in ? i : best), 0);
-  const busiest = totalOut + totalIn ? MONTHS[busiestIdx] : '—';
+  const busiest = totalActivity ? MONTHS[busiestIdx] : '—';
+  const activeMonths = months.filter((c) => c.out + c.in > 0).length;
+  const avgPerMonth = activeMonths ? Math.round(totalActivity / activeMonths) : 0;
 
-  const summaryCard = (label, value) =>
-    `<div class="s-card"><div class="s-val">${escapeHtml(String(value))}</div><div class="s-lbl">${escapeHtml(label)}</div></div>`;
+  const byPerson = {};
+  yearLogs.forEach((l) => {
+    if (!l.person) return;
+    const p = (byPerson[l.person] ||= { out: 0, in: 0 });
+    p[l.action]++;
+  });
+  const topUsers = Object.entries(byPerson)
+    .map(([name, c]) => ({ name, out: c.out, in: c.in, total: c.out + c.in }))
+    .sort((a, b) => b.total - a.total);
 
-  const modelRows = models.map((m) =>
-    `<tr><td>${escapeHtml(m)}</td><td>${availByModel[m] || 0}</td><td>${totalByModel[m]}</td></tr>`).join('');
+  const licences = licenceStats(year);
 
-  const checkedOutRows = checkedOut.length
-    ? checkedOut.map(({ d, st }) =>
-        `<tr><td>${escapeHtml(d.label)}</td><td>${escapeHtml(st.person)}</td><td>${escapeHtml(formatDateTime(st.since))}</td></tr>`).join('')
-    : `<tr><td colspan="3" class="empty">Nothing is checked out.</td></tr>`;
-
-  const quarterRows = quarters.map((c, i) =>
-    `<tr><td>${escapeHtml(QUARTER_NAMES[i].replace(' · ', ' '))}</td><td>${c.out}</td><td>${c.in}</td><td><strong>${c.out + c.in}</strong></td></tr>`).join('');
-
-  const monthRows = months.map((c, m) =>
-    `<tr><td>${escapeHtml(MONTHS[m])}</td><td>${c.out}</td><td>${c.in}</td><td><strong>${c.out + c.in}</strong></td></tr>`).join('');
-
-  return `<!doctype html>
-<html><head><meta charset="utf-8"><title>InReachCI-Report-${stamp}</title>
-<style>
-  * { box-sizing: border-box; }
-  body { font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; color: #23201b; margin: 32px; }
-  h1 { font-size: 22px; margin: 0 0 4px; }
-  h2 { font-size: 15px; margin: 26px 0 10px; padding-bottom: 6px; border-bottom: 1px solid #d8d2c7; }
-  .meta { color: #7a7365; font-size: 12px; margin-bottom: 8px; }
-  .cards { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
-  .s-card { border: 1px solid #d8d2c7; border-radius: 8px; padding: 10px 14px; min-width: 96px; }
-  .s-val { font-size: 22px; font-weight: 700; }
-  .s-lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: #7a7365; }
-  table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #e7e2d9; }
-  th { color: #7a7365; font-weight: 600; }
-  td:nth-child(n+2), th:nth-child(n+2) { text-align: right; }
-  .status td:nth-child(n+2), .status th:nth-child(n+2) { text-align: left; }
-  .empty { color: #7a7365; text-align: center; font-style: italic; }
-  .two { display: flex; gap: 28px; }
-  .two > div { flex: 1; }
-  @media print { body { margin: 0; } h2 { page-break-after: avoid; } tr { page-break-inside: avoid; } }
-</style></head>
-<body>
-  <h1>InReach Check-In — Report</h1>
-  <div class="meta">Generated ${escapeHtml(formatDateTime(now.toISOString()))} · Activity year ${year}</div>
-
-  <h2>Fleet status</h2>
-  <div class="cards">
-    ${summaryCard('Devices', total)}
-    ${summaryCard('Available', available)}
-    ${summaryCard('Checked out', out)}
-    ${summaryCard('Deactivated', deactivated)}
-  </div>
-
-  <h2>Devices by model</h2>
-  <table><thead><tr><th>Model</th><th>Available</th><th>Total</th></tr></thead><tbody>${modelRows}</tbody></table>
-
-  <h2>Currently checked out</h2>
-  <table class="status"><thead><tr><th>Device</th><th>Person</th><th>Since</th></tr></thead><tbody>${checkedOutRows}</tbody></table>
-
-  <h2>Activity ${year}</h2>
-  <div class="cards">
-    ${summaryCard('Check-outs', totalOut)}
-    ${summaryCard('Check-ins', totalIn)}
-    ${summaryCard('People', people)}
-    ${summaryCard('Busiest month', busiest)}
-  </div>
-
-  <div class="two">
-    <div>
-      <h2>By quarter</h2>
-      <table><thead><tr><th>Quarter</th><th>Out</th><th>In</th><th>Total</th></tr></thead><tbody>${quarterRows}</tbody></table>
-    </div>
-    <div>
-      <h2>By month</h2>
-      <table><thead><tr><th>Month</th><th>Out</th><th>In</th><th>Total</th></tr></thead><tbody>${monthRows}</tbody></table>
-    </div>
-  </div>
-</body></html>`;
+  return {
+    now, total, deactivated, checkedOut, out, available,
+    totalByModel, availByModel, models, year, months, quarters,
+    totalOut, totalIn, totalActivity, people, busiest, avgPerMonth, topUsers, licences,
+  };
 }
 
-function downloadReportPdf() {
-  const iframe = document.createElement('iframe');
-  iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
-  document.body.appendChild(iframe);
+/* Lazy-load jsPDF + autoTable from CDN once, so we can build a real, text-based
+   PDF file in the browser (selectable text, vector charts — not a screenshot). */
+let pdfLibPromise;
+function ensurePdfLibs() {
+  if (window.jspdf?.jsPDF?.API?.autoTable) return Promise.resolve();
+  if (pdfLibPromise) return pdfLibPromise;
+  const load = (src) => new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = resolve;
+    s.onerror = () => reject(new Error(`Failed to load ${src}`));
+    document.head.appendChild(s);
+  });
+  pdfLibPromise = load('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js')
+    .then(() => load('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js'))
+    .catch((err) => { pdfLibPromise = null; throw err; });
+  return pdfLibPromise;
+}
 
-  const doc = iframe.contentWindow.document;
-  doc.open();
-  doc.write(buildReportHtml());
-  doc.close();
+// PDF theme palette (mirrors the app's Japandi colours).
+const PDF_COLORS = {
+  ink: [56, 51, 44],
+  inkSoft: [109, 103, 92],
+  muted: [122, 115, 101],
+  line: [216, 210, 199],
+  sage: [127, 139, 111],
+  clay: [185, 134, 106],
+  headFill: [241, 236, 226],
+  rowAlt: [249, 246, 240],
+};
 
-  const win = iframe.contentWindow;
-  win.onafterprint = () => iframe.remove();
-  setTimeout(() => { win.focus(); win.print(); }, 300);
-  // Fallback cleanup in case afterprint never fires (e.g. dialog dismissed).
-  setTimeout(() => { if (document.body.contains(iframe)) iframe.remove(); }, 60000);
-  toast('Opening print dialog — choose “Save as PDF”.');
+// Draw a donut chart from segments; renders the total in the hole.
+function pdfDonut(doc, cx, cy, radius, segments, centerCount) {
+  const total = segments.reduce((s, x) => s + x.value, 0);
+  if (total <= 0) {
+    doc.setFillColor(...PDF_COLORS.headFill);
+    doc.circle(cx, cy, radius, 'F');
+  } else {
+    let angle = -90;
+    segments.forEach((seg) => {
+      if (seg.value <= 0) return;
+      const sweep = (seg.value / total) * 360;
+      const steps = Math.max(1, Math.ceil(sweep / 2));
+      const step = sweep / steps;
+      doc.setFillColor(seg.color[0], seg.color[1], seg.color[2]);
+      for (let i = 0; i < steps; i++) {
+        const a1 = ((angle + i * step) * Math.PI) / 180;
+        const a2 = ((angle + (i + 1) * step) * Math.PI) / 180;
+        doc.triangle(
+          cx, cy,
+          cx + radius * Math.cos(a1), cy + radius * Math.sin(a1),
+          cx + radius * Math.cos(a2), cy + radius * Math.sin(a2),
+          'F');
+      }
+      angle += sweep;
+    });
+  }
+  doc.setFillColor(255, 255, 255);
+  doc.circle(cx, cy, radius * 0.58, 'F');
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.setTextColor(...PDF_COLORS.ink);
+  doc.text(String(centerCount), cx, cy + 2, { align: 'center' });
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(...PDF_COLORS.muted);
+  doc.text('DEVICES', cx, cy + 14, { align: 'center' });
+}
+
+// Draw a grouped monthly bar chart (check-outs vs check-ins).
+function pdfBars(doc, x, y, w, h, months) {
+  const { clay, sage, muted } = PDF_COLORS;
+  const peak = Math.max(...months.map((c) => Math.max(c.out, c.in)), 1);
+  const groupW = w / 12;
+  const barW = Math.min(11, groupW * 0.34);
+  months.forEach((c, m) => {
+    const gx = x + m * groupW + groupW / 2;
+    const outH = (c.out / peak) * h;
+    const inH = (c.in / peak) * h;
+    doc.setFillColor(...clay);
+    doc.rect(gx - barW - 1, y + h - outH, barW, outH, 'F');
+    doc.setFillColor(...sage);
+    doc.rect(gx + 1, y + h - inH, barW, inH, 'F');
+    doc.setFontSize(7); doc.setTextColor(...muted);
+    doc.text(MONTHS[m].slice(0, 1), gx, y + h + 11, { align: 'center' });
+  });
+}
+
+async function downloadReportPdf() {
+  toast('Building PDF…');
+  try {
+    await ensurePdfLibs();
+  } catch {
+    toast('Could not load the PDF library (check your connection).', true);
+    return;
+  }
+
+  try {
+    const r = computeReportData();
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const C = PDF_COLORS;
+
+    const now = r.now;
+    const pad = (n) => String(n).padStart(2, '0');
+    const stamp = `${pad(now.getDate())}${pad(now.getMonth() + 1)}${String(now.getFullYear()).slice(-2)}`;
+
+    const M = 40;
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const contentW = pageW - M * 2;
+    let y = 0;
+
+    const ensureSpace = (need) => {
+      if (y + need > pageH - M) { doc.addPage(); y = M; }
+    };
+
+    const heading = (text) => {
+      ensureSpace(46);
+      y += 6;
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.setTextColor(...C.ink);
+      doc.text(text, M, y);
+      y += 8;
+      doc.setDrawColor(...C.line); doc.setLineWidth(0.8);
+      doc.line(M, y, pageW - M, y);
+      y += 18;
+    };
+
+    const summaryCards = (items) => {
+      const gap = 10;
+      const cardW = (contentW - gap * (items.length - 1)) / items.length;
+      const cardH = 52;
+      ensureSpace(cardH + 8);
+      items.forEach((it, i) => {
+        const x = M + i * (cardW + gap);
+        doc.setDrawColor(...C.line); doc.setLineWidth(0.8);
+        doc.roundedRect(x, y, cardW, cardH, 6, 6, 'S');
+
+        let vs = 17;
+        doc.setFont('helvetica', 'bold'); doc.setTextColor(...C.ink); doc.setFontSize(vs);
+        const val = String(it.value);
+        while (doc.getTextWidth(val) > cardW - 20 && vs > 9) { vs -= 1; doc.setFontSize(vs); }
+        doc.text(val, x + 12, y + 26);
+
+        let ls = 7.5;
+        doc.setFont('helvetica', 'normal'); doc.setTextColor(...C.muted); doc.setFontSize(ls);
+        const lbl = String(it.label).toUpperCase();
+        while (doc.getTextWidth(lbl) > cardW - 18 && ls > 5) { ls -= 0.5; doc.setFontSize(ls); }
+        doc.text(lbl, x + 12, y + 42);
+      });
+      y += cardH + 20;
+    };
+
+    const baseTableStyle = {
+      styles: { font: 'helvetica', fontSize: 9, cellPadding: 5, textColor: C.ink, lineColor: C.line, lineWidth: 0.5 },
+      headStyles: { fillColor: C.headFill, textColor: C.muted, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: C.rowAlt },
+    };
+
+    const table = (head, body, opts = {}) => {
+      doc.autoTable({ startY: y, head: [head], body, margin: { left: M, right: M }, theme: 'grid', ...baseTableStyle, ...opts });
+      y = doc.lastAutoTable.finalY + 22;
+    };
+
+    /* ---- Title ---- */
+    y = 54;
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(20); doc.setTextColor(...C.ink);
+    doc.text('InReach Check-In — Report', M, y);
+    y += 18;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(...C.muted);
+    doc.text(`Generated ${formatDateTime(now.toISOString())}  ·  Activity year ${r.year}`, M, y);
+    y += 22;
+
+    /* ---- Fleet status ---- */
+    heading('Fleet status');
+    summaryCards([
+      { label: 'Devices', value: r.total },
+      { label: 'Available', value: r.available },
+      { label: 'Checked out', value: r.out },
+      { label: 'Deactivated', value: r.deactivated },
+    ]);
+
+    /* ---- Fleet snapshot (donut + legend) ---- */
+    heading('Fleet snapshot');
+    ensureSpace(150);
+    {
+      const parts = [
+        { label: 'Available', value: r.available, color: C.sage },
+        { label: 'Checked out', value: r.out, color: C.clay },
+        { label: 'Deactivated', value: r.deactivated, color: C.muted },
+      ];
+      pdfDonut(doc, M + 62, y + 60, 52, parts, r.total);
+      let ly = y + 26;
+      const lx = M + 150;
+      doc.setFontSize(10);
+      parts.forEach((p) => {
+        doc.setFillColor(...p.color);
+        doc.rect(lx, ly - 8, 10, 10, 'F');
+        doc.setFont('helvetica', 'normal'); doc.setTextColor(...C.inkSoft);
+        doc.text(p.label, lx + 16, ly);
+        const pct = r.total ? Math.round((p.value / r.total) * 100) : 0;
+        doc.setFont('helvetica', 'bold'); doc.setTextColor(...C.ink);
+        doc.text(`${p.value}  ·  ${pct}%`, pageW - M, ly, { align: 'right' });
+        ly += 24;
+      });
+      y += 150;
+    }
+
+    /* ---- Devices by model ---- */
+    heading('Devices by model');
+    table(
+      ['Model', 'Available', 'Total'],
+      r.models.map((m) => [m, String(r.availByModel[m] || 0), String(r.totalByModel[m])]),
+      { columnStyles: { 1: { halign: 'right' }, 2: { halign: 'right' } } });
+
+    /* ---- Currently checked out ---- */
+    heading('Currently checked out');
+    table(
+      ['Device', 'Person', 'Since'],
+      r.checkedOut.length
+        ? r.checkedOut.map(({ d, st }) => [d.label, st.person, formatDateTime(st.since)])
+        : [[{ content: 'Nothing is checked out.', colSpan: 3, styles: { halign: 'center', textColor: C.muted, fontStyle: 'italic' } }]]);
+
+    /* ---- Subscription licences ---- */
+    heading('Subscription licences');
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(...C.inkSoft);
+    doc.text(
+      `${r.licences.activeCount} active licence${r.licences.activeCount === 1 ? '' : 's'} currently assigned (Enabled/Basic, Advanced, Premier).`,
+      M, y);
+    y += 16;
+    table(
+      ['Licence / plan', 'Status', 'Assigned', `Used ${r.year}`, 'Used all-time'],
+      PLANS.map((p) => [
+        p,
+        licenceStatusLabel(p),
+        String(r.licences.current[p] || 0),
+        String(r.licences.usedYear[p] || 0),
+        String(r.licences.usedAll[p] || 0),
+      ]),
+      { columnStyles: { 2: { halign: 'right' }, 3: { halign: 'right' }, 4: { halign: 'right', fontStyle: 'bold' } } });
+
+    /* ---- Activity summary ---- */
+    heading(`Activity ${r.year}`);
+    summaryCards([
+      { label: 'Check-outs', value: r.totalOut },
+      { label: 'Check-ins', value: r.totalIn },
+      { label: 'Total activity', value: r.totalActivity },
+      { label: 'People', value: r.people },
+      { label: 'Busiest month', value: r.busiest },
+      { label: 'Avg / month', value: r.avgPerMonth },
+    ]);
+
+    /* ---- Monthly activity chart ---- */
+    heading('Monthly activity');
+    ensureSpace(160);
+    {
+      const chartH = 120;
+      const chartX = M;
+      const chartY = y;
+      doc.setDrawColor(...C.line); doc.setLineWidth(0.8);
+      doc.line(chartX, chartY + chartH, chartX + contentW, chartY + chartH);
+      pdfBars(doc, chartX, chartY, contentW, chartH, r.months);
+      y = chartY + chartH + 20;
+      doc.setFillColor(...C.clay); doc.rect(chartX, y - 8, 10, 10, 'F');
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...C.inkSoft);
+      doc.text('Check-outs', chartX + 15, y);
+      const w1 = doc.getTextWidth('Check-outs');
+      doc.setFillColor(...C.sage); doc.rect(chartX + 15 + w1 + 18, y - 8, 10, 10, 'F');
+      doc.text('Check-ins', chartX + 15 + w1 + 18 + 15, y);
+      y += 24;
+    }
+
+    /* ---- Quarter + month tables side by side ---- */
+    heading('Activity by period');
+    {
+      const half = (contentW - 20) / 2;
+      const startY = y;
+      doc.autoTable({
+        startY,
+        head: [['Quarter', 'Out', 'In', 'Total']],
+        body: r.quarters.map((c, i) => [QUARTER_NAMES[i].replace(' · ', ' '), String(c.out), String(c.in), String(c.out + c.in)]),
+        margin: { left: M }, tableWidth: half, theme: 'grid', ...baseTableStyle,
+        columnStyles: { 1: { halign: 'right' }, 2: { halign: 'right' }, 3: { halign: 'right', fontStyle: 'bold' } },
+      });
+      const leftFinal = doc.lastAutoTable.finalY;
+      doc.autoTable({
+        startY,
+        head: [['Month', 'Out', 'In', 'Total']],
+        body: r.months.map((c, m) => [MONTHS[m], String(c.out), String(c.in), String(c.out + c.in)]),
+        margin: { left: M + half + 20 }, tableWidth: half, theme: 'grid', ...baseTableStyle,
+        columnStyles: { 1: { halign: 'right' }, 2: { halign: 'right' }, 3: { halign: 'right', fontStyle: 'bold' } },
+      });
+      y = Math.max(leftFinal, doc.lastAutoTable.finalY) + 22;
+    }
+
+    /* ---- Most active users ---- */
+    heading('Most active users');
+    if (r.topUsers.length) {
+      table(
+        ['#', 'User', 'Check-outs', 'Check-ins', 'Total'],
+        r.topUsers.slice(0, 15).map((u, i) => [String(i + 1), u.name, String(u.out), String(u.in), String(u.total)]),
+        { columnStyles: { 0: { cellWidth: 26, halign: 'center' }, 2: { halign: 'right' }, 3: { halign: 'right' }, 4: { halign: 'right', fontStyle: 'bold' } } });
+    } else {
+      ensureSpace(30);
+      doc.setFont('helvetica', 'italic'); doc.setFontSize(10); doc.setTextColor(...C.muted);
+      doc.text('No user activity this year.', M, y + 2);
+      y += 26;
+    }
+
+    /* ---- Page footers ---- */
+    const pages = doc.internal.getNumberOfPages();
+    for (let p = 1; p <= pages; p++) {
+      doc.setPage(p);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...C.muted);
+      doc.text(`InReach Check-In · Page ${p} of ${pages}`, pageW - M, pageH - 18, { align: 'right' });
+    }
+
+    doc.save(`InReachCI-Report-${stamp}.pdf`);
+    toast('Report downloaded.');
+  } catch {
+    toast('Could not generate the PDF.', true);
+  }
 }
 
 $('#reportYear').addEventListener('change', renderReports);
