@@ -340,6 +340,9 @@ select {
 .btn.ghost { background: transparent; border-color: var(--line); color: var(--ink-soft); }
 .btn.ghost:hover { border-color: var(--sage); color: var(--sage-deep); }
 
+.btn.danger { background: var(--danger); color: #fbfaf6; }
+.btn.danger:hover { filter: brightness(0.94); }
+
 .btn.icon {
   background: transparent;
   border: none;
@@ -417,6 +420,19 @@ select {
 .status-item .badge.plan { margin-left: 8px; vertical-align: 1px; }
 .status-item .who { font-size: 13px; color: var(--muted); margin-top: 3px; }
 .confirm-inline { display: flex; align-items: center; gap: 8px; }
+
+.import-confirm {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: -8px 0 18px;
+  padding: 12px 14px;
+  background: var(--bg);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
+}
+.import-confirm .ic-text { font-size: 13px; color: var(--ink-soft); flex: 1; min-width: 220px; }
 .confirm-text { font-size: 13px; color: var(--ink-soft); }
 .status-item.item-enter { animation: itemIn 0.35s ease both; }
 @keyframes itemIn {

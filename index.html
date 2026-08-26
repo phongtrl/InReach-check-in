@@ -223,8 +223,11 @@
             <input type="search" id="historySearch" class="search" placeholder="Search person / notes…" />
             <button type="button" class="btn ghost" id="exportBtn">Export CSV</button>
             <button type="button" class="btn ghost" id="backupBtn">Download backup</button>
+            <button type="button" class="btn ghost" id="importBtn">Import backup</button>
+            <input type="file" id="backupFile" accept="application/json,.json" hidden />
           </div>
         </div>
+        <div id="importConfirm" class="import-confirm" hidden></div>
         <div class="table-wrap">
           <table id="historyTable" class="table">
             <thead>

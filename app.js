@@ -875,6 +875,56 @@ $('#backupBtn').addEventListener('click', () => {
   toast('Backup downloaded.');
 });
 
+let pendingImport = null;
+
+$('#importBtn').addEventListener('click', () => $('#backupFile').click());
+
+$('#backupFile').addEventListener('change', (e) => {
+  const file = e.target.files && e.target.files[0];
+  e.target.value = ''; // allow picking the same file again later
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    let data;
+    try { data = JSON.parse(reader.result); } catch { toast('Invalid backup file.', true); return; }
+    if (!data || !Array.isArray(data.devices) || !Array.isArray(data.logs)) {
+      toast('Not a valid InReach backup.', true);
+      return;
+    }
+    pendingImport = data;
+    const when = data.exportedAt ? formatDateTime(data.exportedAt) : 'an unknown date';
+    $('#importConfirm').innerHTML = `
+      <span class="ic-text">Replace all current data with backup from ${escapeHtml(when)} —
+        <strong>${data.devices.length}</strong> device${data.devices.length === 1 ? '' : 's'},
+        <strong>${data.logs.length}</strong> log${data.logs.length === 1 ? '' : 's'}?</span>
+      <button type="button" class="btn ghost" data-import-cancel>Cancel</button>
+      <button type="button" class="btn danger" data-import-confirm>Replace all</button>`;
+    $('#importConfirm').hidden = false;
+  };
+  reader.onerror = () => toast('Could not read file.', true);
+  reader.readAsText(file);
+});
+
+$('#importConfirm').addEventListener('click', (e) => {
+  if (e.target.closest('[data-import-cancel]')) {
+    pendingImport = null;
+    $('#importConfirm').hidden = true;
+    return;
+  }
+  if (e.target.closest('[data-import-confirm]') && pendingImport) {
+    devices = pendingImport.devices;
+    logs = pendingImport.logs;
+    save(STORE.devices, devices);
+    save(STORE.logs, logs);
+    pendingImport = null;
+    $('#importConfirm').hidden = true;
+    migrateLabels();
+    renderAll();
+    toast('Backup imported.');
+  }
+});
+
 /* ---------- Reports: activity by quarter and month ---------- */
 const QUARTER_NAMES = ['Q1 · Jan–Mar', 'Q2 · Apr–Jun', 'Q3 · Jul–Sep', 'Q4 · Oct–Dec'];
 
