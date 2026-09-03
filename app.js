@@ -1052,6 +1052,36 @@ function renderLicences(year) {
     </tr>`).join('');
 }
 
+// Renders the on-page "Activity log" card — every check-out and check-in for the year.
+function renderActivityLog(year) {
+  const byId = new Map(devices.map((d) => [d.id, d]));
+  const rows = logs
+    .filter((l) => new Date(l.date).getFullYear() === year)
+    .slice()
+    .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  const outCount = rows.filter((l) => l.action === 'out').length;
+  const inCount = rows.length - outCount;
+  $('#activityLogCount').textContent = rows.length ? `${outCount} out · ${inCount} in` : '';
+  $('#noActivityLog').hidden = rows.length > 0;
+  $('#activityLogTable').style.display = rows.length ? '' : 'none';
+
+  $('#activityLogTable tbody').innerHTML = rows.map((l) => {
+    const dev = byId.get(l.deviceId);
+    const badge = l.action === 'in'
+      ? '<span class="badge act-in">Check-in</span>'
+      : '<span class="badge act-out">Check-out</span>';
+    return `
+      <tr>
+        <td>${escapeHtml(formatDateTime(l.date))}</td>
+        <td>${badge}</td>
+        <td>${escapeHtml(dev ? dev.label : 'Unknown device')}</td>
+        <td>${escapeHtml(l.person || '')}</td>
+        <td>${escapeHtml(l.notes || '')}</td>
+      </tr>`;
+  }).join('');
+}
+
 function renderReports() {
   const years = reportYears();
   const yearSel = $('#reportYear');
@@ -1093,6 +1123,7 @@ function renderReports() {
   renderFleetDonut();
   renderTopUsers(yearLogs);
   renderLicences(year);
+  renderActivityLog(year);
 
   const peak = Math.max(...quarters.map((c) => c.out + c.in), 1);
   $('#quarterTable tbody').innerHTML = quarters.map((c, i) => {
@@ -1241,6 +1272,14 @@ function exportReport() {
   const quarters = quarterlyCounts(months);
   if (!months.some((c) => c.out || c.in)) { toast('No activity to export.', true); return; }
 
+  const byId = new Map(devices.map((d) => [d.id, d]));
+  const yearLogs = logs
+    .filter((l) => new Date(l.date).getFullYear() === year)
+    .slice()
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+  const totalOut = yearLogs.filter((l) => l.action === 'out').length;
+  const totalIn = yearLogs.filter((l) => l.action === 'in').length;
+
   const rows = [
     [`InReach activity report ${year}`],
     [],
@@ -1249,6 +1288,17 @@ function exportReport() {
     [],
     ['Month', 'Check-outs', 'Check-ins', 'Total'],
     ...months.map((c, m) => [MONTHS[m], c.out, c.in, c.out + c.in]),
+    [],
+    [`Detailed activity ${year} — ${totalOut} check-outs, ${totalIn} check-ins`],
+    ['Date & time', 'Action', 'Device', 'Person', 'Subscription', 'Notes'],
+    ...yearLogs.map((l) => [
+      formatDateTime(l.date),
+      l.action === 'in' ? 'Check-in' : 'Check-out',
+      byId.get(l.deviceId)?.label || 'Unknown device',
+      l.person || '',
+      l.plan || '',
+      l.notes || '',
+    ]),
   ];
 
   const csv = rows
@@ -1314,10 +1364,22 @@ function computeReportData() {
 
   const licences = licenceStats(year);
 
+  const devById = new Map(devices.map((d) => [d.id, d]));
+  const activityLog = yearLogs
+    .slice()
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .map((l) => ({
+      date: l.date,
+      action: l.action,
+      device: devById.get(l.deviceId)?.label || 'Unknown device',
+      person: l.person || '',
+      notes: l.notes || '',
+    }));
+
   return {
     now, total, deactivated, checkedOut, out, available,
     totalByModel, availByModel, models, year, months, quarters,
-    totalOut, totalIn, totalActivity, people, busiest, avgPerMonth, topUsers, licences,
+    totalOut, totalIn, totalActivity, people, busiest, avgPerMonth, topUsers, licences, activityLog,
   };
 }
 
@@ -1434,7 +1496,8 @@ async function downloadReportPdf() {
       if (y + need > pageH - M) { doc.addPage(); y = M; }
     };
 
-    const heading = (text) => {
+    const heading = (text, forceNewPage = false) => {
+      if (forceNewPage) { doc.addPage(); y = M; }
       ensureSpace(46);
       y += 6;
       doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.setTextColor(...C.ink);
@@ -1540,6 +1603,20 @@ async function downloadReportPdf() {
         ? r.checkedOut.map(({ d, st }) => [d.label, st.person, formatDateTime(st.since)])
         : [[{ content: 'Nothing is checked out.', colSpan: 3, styles: { halign: 'center', textColor: C.muted, fontStyle: 'italic' } }]]);
 
+    /* ---- Most active users ---- */
+    heading('Most active users');
+    if (r.topUsers.length) {
+      table(
+        ['#', 'User', 'Check-outs', 'Check-ins', 'Total'],
+        r.topUsers.slice(0, 15).map((u, i) => [String(i + 1), u.name, String(u.out), String(u.in), String(u.total)]),
+        { columnStyles: { 0: { cellWidth: 26, halign: 'center' }, 2: { halign: 'right' }, 3: { halign: 'right' }, 4: { halign: 'right', fontStyle: 'bold' } } });
+    } else {
+      ensureSpace(30);
+      doc.setFont('helvetica', 'italic'); doc.setFontSize(10); doc.setTextColor(...C.muted);
+      doc.text('No user activity this year.', M, y + 2);
+      y += 26;
+    }
+
     /* ---- Subscription licences ---- */
     heading('Subscription licences');
     doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(...C.inkSoft);
@@ -1559,7 +1636,7 @@ async function downloadReportPdf() {
       { columnStyles: { 2: { halign: 'right' }, 3: { halign: 'right' }, 4: { halign: 'right', fontStyle: 'bold' } } });
 
     /* ---- Activity summary ---- */
-    heading(`Activity ${r.year}`);
+    heading(`Activity ${r.year}`, true);
     summaryCards([
       { label: 'Check-outs', value: r.totalOut },
       { label: 'Check-ins', value: r.totalIn },
@@ -1612,17 +1689,35 @@ async function downloadReportPdf() {
       y = Math.max(leftFinal, doc.lastAutoTable.finalY) + 22;
     }
 
-    /* ---- Most active users ---- */
-    heading('Most active users');
-    if (r.topUsers.length) {
+    /* ---- Activity log (every check-out and check-in) ---- */
+    heading('Activity log', true);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(...C.inkSoft);
+    doc.text(`${r.totalOut} check-outs and ${r.totalIn} check-ins recorded in ${r.year} (newest first).`, M, y);
+    y += 16;
+    if (r.activityLog.length) {
       table(
-        ['#', 'User', 'Check-outs', 'Check-ins', 'Total'],
-        r.topUsers.slice(0, 15).map((u, i) => [String(i + 1), u.name, String(u.out), String(u.in), String(u.total)]),
-        { columnStyles: { 0: { cellWidth: 26, halign: 'center' }, 2: { halign: 'right' }, 3: { halign: 'right' }, 4: { halign: 'right', fontStyle: 'bold' } } });
+        ['Date & time', 'Action', 'Device', 'Person', 'Notes'],
+        r.activityLog.map((l) => [
+          formatDateTime(l.date),
+          l.action === 'in' ? 'Check-in' : 'Check-out',
+          l.device,
+          l.person,
+          l.notes,
+        ]),
+        {
+          columnStyles: { 0: { cellWidth: 108 }, 1: { cellWidth: 62, halign: 'center', fontStyle: 'bold' } },
+          // Tint the Action cell: orange for check-out, pastel green for check-in.
+          didParseCell: (data) => {
+            if (data.section !== 'body' || data.column.index !== 1) return;
+            const isIn = data.cell.raw === 'Check-in';
+            data.cell.styles.fillColor = isIn ? [207, 233, 189] : [251, 220, 192];
+            data.cell.styles.textColor = isIn ? [74, 125, 51] : [194, 94, 18];
+          },
+        });
     } else {
       ensureSpace(30);
       doc.setFont('helvetica', 'italic'); doc.setFontSize(10); doc.setTextColor(...C.muted);
-      doc.text('No user activity this year.', M, y + 2);
+      doc.text('No activity recorded this year.', M, y + 2);
       y += 26;
     }
 

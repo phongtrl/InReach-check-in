@@ -109,6 +109,20 @@ h1, h2, h3 { font-family: var(--serif); font-weight: 500; letter-spacing: 0.02em
   border-radius: 2px;
 }
 
+/* License Portal link (opens Garmin Explore in a new tab). */
+.portal-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  text-decoration: none;
+  background: var(--sage);
+  color: #fbfaf6;
+  border-color: var(--sage);
+  white-space: nowrap;
+}
+.portal-btn:hover { background: var(--sage-deep); border-color: var(--sage-deep); }
+.portal-ext { font-size: 15px; line-height: 1; }
+
 /* ---------- Layout ---------- */
 main { max-width: 1080px; margin: 0 auto; padding: 8px 32px 56px; }
 
@@ -135,6 +149,21 @@ main { max-width: 1080px; margin: 0 auto; padding: 8px 32px 56px; }
 .grid-even { grid-template-columns: 1fr 1fr; }
 .reports-grid { margin-top: 24px; }
 @media (max-width: 840px) { .grid-even { grid-template-columns: 1fr; } }
+
+/* Reports: paired cards share height; compact pairs sit together so rows stay tight. */
+.reports-grid.grid-even { align-items: stretch; }
+.reports-grid.grid-even > .card { display: flex; flex-direction: column; }
+
+/* Quarter + month tables share one card, side by side, top-aligned. */
+.period-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+@media (max-width: 840px) { .period-grid { grid-template-columns: 1fr; } }
+.subhead {
+  margin: 0 0 12px;
+  font-family: var(--serif);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
 
 /* ---------- Cards ---------- */
 .card {
@@ -542,6 +571,10 @@ select {
 .badge.out { background: var(--clay-tint); color: var(--clay); }
 .badge.in { background: var(--sage-tint); color: var(--sage-deep); }
 .badge.unavailable { background: #e7e2d9; color: var(--muted); }
+
+/* Activity-log actions: orange = check-out, pastel green = check-in. */
+.badge.act-out { background: #fbdcc0; color: #c25e12; }
+.badge.act-in { background: #cfe9bd; color: #4a7d33; }
 
 .plan { background: transparent; border: 1px solid var(--line); color: var(--ink-soft); }
 .plan.Suspend { color: var(--muted); }

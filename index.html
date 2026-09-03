@@ -25,6 +25,10 @@
       <button class="tab" data-tab="history">History</button>
       <button class="tab" data-tab="reports">Reports</button>
     </nav>
+    <a class="btn portal-btn" href="https://explore.garmin.com/Devices" target="_blank" rel="noopener noreferrer">
+      License Portal
+      <span class="portal-ext" aria-hidden="true">↗</span>
+    </a>
   </header>
 
   <main>
@@ -261,18 +265,6 @@
         <div class="stats" id="reportSummary"></div>
       </div>
 
-      <div class="card reports-grid">
-        <div class="card-head">
-          <h2>Monthly activity</h2>
-          <div class="chart-legend">
-            <span class="lg out"><i></i>Check-outs</span>
-            <span class="lg in"><i></i>Check-ins</span>
-          </div>
-        </div>
-        <div class="bar-chart" id="monthChart"></div>
-        <p id="noReportActivity" class="empty" hidden>No activity recorded for this year.</p>
-      </div>
-
       <div class="grid grid-even reports-grid">
         <div class="card">
           <h2>Fleet snapshot</h2>
@@ -314,29 +306,64 @@
         </div>
       </div>
 
-      <div class="grid grid-even reports-grid">
-        <div class="card">
-          <h2>By quarter</h2>
-          <div class="table-wrap">
-            <table id="quarterTable" class="table">
-              <thead>
-                <tr><th>Quarter</th><th>Check-outs</th><th>Check-ins</th><th>Total</th><th>Share</th></tr>
-              </thead>
-              <tbody></tbody>
-            </table>
+      <div class="card reports-grid">
+        <div class="card-head">
+          <h2>Monthly activity</h2>
+          <div class="chart-legend">
+            <span class="lg out"><i></i>Check-outs</span>
+            <span class="lg in"><i></i>Check-ins</span>
           </div>
         </div>
-        <div class="card">
-          <h2>By month</h2>
-          <div class="table-wrap">
-            <table id="monthTable" class="table">
-              <thead>
-                <tr><th>Month</th><th>Check-outs</th><th>Check-ins</th><th>Total</th><th>Share</th></tr>
-              </thead>
-              <tbody></tbody>
-            </table>
+        <div class="bar-chart" id="monthChart"></div>
+        <p id="noReportActivity" class="empty" hidden>No activity recorded for this year.</p>
+      </div>
+
+      <div class="card reports-grid">
+        <div class="card-head">
+          <h2>Activity by period</h2>
+        </div>
+        <p class="licence-note">Check-outs and check-ins grouped by quarter and by month for the selected year.</p>
+        <div class="period-grid">
+          <div class="period-block">
+            <h3 class="subhead">By quarter</h3>
+            <div class="table-wrap">
+              <table id="quarterTable" class="table">
+                <thead>
+                  <tr><th>Quarter</th><th>Check-outs</th><th>Check-ins</th><th>Total</th><th>Share</th></tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="period-block">
+            <h3 class="subhead">By month</h3>
+            <div class="table-wrap">
+              <table id="monthTable" class="table">
+                <thead>
+                  <tr><th>Month</th><th>Check-outs</th><th>Check-ins</th><th>Total</th><th>Share</th></tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
           </div>
         </div>
+      </div>
+
+      <div class="card reports-grid">
+        <div class="card-head">
+          <h2>Activity log</h2>
+          <span class="count" id="activityLogCount"></span>
+        </div>
+        <p class="licence-note">Every check-out and check-in recorded this year, newest first.</p>
+        <div class="table-wrap">
+          <table id="activityLogTable" class="table">
+            <thead>
+              <tr><th>Date &amp; time</th><th>Action</th><th>Device</th><th>Person</th><th>Notes</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p id="noActivityLog" class="empty" hidden>No activity recorded this year.</p>
       </div>
     </section>
   </main>
