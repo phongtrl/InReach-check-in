@@ -1,0 +1,302 @@
+{
+  "app": "InReach Check-In",
+  "version": 1,
+  "exportedAt": "2026-09-03T10:36:34.854Z",
+  "devices": [
+    {
+      "id": "mtle14ircug0b",
+      "label": "inReach Mini II 51",
+      "model": "inReach Mini 2",
+      "imei": "301434039139750",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14irz5ti2",
+      "label": "GPSMAP 66i",
+      "model": "GPSMAP 66i",
+      "imei": "300434036509310",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14irx5x6k",
+      "label": "inReach Mini II 11",
+      "model": "inReach Mini 2",
+      "imei": "301434032130080",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14ir17ty3",
+      "label": "inReach Mini II 12",
+      "model": "inReach Mini 2",
+      "imei": "301434032034150",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14ir8vsol",
+      "label": "inReach Mini II 13",
+      "model": "inReach Mini 2",
+      "imei": "301434032138100",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14ir4ev39",
+      "label": "inReach Mini II 14",
+      "model": "inReach Mini 2",
+      "imei": "301434032727090",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14irpf21k",
+      "label": "inReach Mini II 15",
+      "model": "inReach Mini 2",
+      "imei": "301434032036910",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14irvf6eh",
+      "label": "inReach Mini II 16",
+      "model": "inReach Mini 2",
+      "imei": "301434036584700",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14ir6qkzl",
+      "label": "inReach Mini II 17",
+      "model": "inReach Mini 2",
+      "imei": "301434036588640",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14ircz361",
+      "label": "inReach Mini II 18",
+      "model": "inReach Mini 2",
+      "imei": "301434036685930",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14iryng28",
+      "label": "inReach Mini II 19",
+      "model": "inReach Mini 2",
+      "imei": "301434036789480",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14ir68xc0",
+      "label": "inReach Mini II 20",
+      "model": "inReach Mini 2",
+      "imei": "301434036788560",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14ir96chl",
+      "label": "inReach Mini II 21",
+      "model": "inReach Mini 2",
+      "imei": "301434036781880",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14irxky05",
+      "label": "inReach Mini II 22",
+      "model": "inReach Mini 2",
+      "imei": "301434036890470",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14irb3pdb",
+      "label": "inReach Mini II 23",
+      "model": "inReach Mini 2",
+      "imei": "301434036893270",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14irgexbj",
+      "label": "inReach Mini II 24",
+      "model": "inReach Mini 2",
+      "imei": "301434036890090",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14irfj9l7",
+      "label": "inReach Mini II 25",
+      "model": "inReach Mini 2",
+      "imei": "301434036695910",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14irscb3s",
+      "label": "inReach Mini II 26",
+      "model": "inReach Mini 2",
+      "imei": "301434036897080",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14iry3emp",
+      "label": "inReach Mini II 27",
+      "model": "inReach Mini 2",
+      "imei": "301434039397480",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14irhw2j3",
+      "label": "inReach Mini II 28",
+      "model": "inReach Mini 2",
+      "imei": "301434039390960",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14irp2zk9",
+      "label": "inReach Mini II 29",
+      "model": "inReach Mini 2",
+      "imei": "301434039397690",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14ir4cypq",
+      "label": "inReach Mini II 30",
+      "model": "inReach Mini 2",
+      "imei": "301434039390630",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14irz5rw0",
+      "label": "inReach Mini II 31",
+      "model": "inReach Mini 2",
+      "imei": "301434039193600",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14irecltu",
+      "label": "inReach Mini II 32",
+      "model": "inReach Mini 2",
+      "imei": "301434039068070",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14irfd6hr",
+      "label": "inReach Mini II 33",
+      "model": "inReach Mini 2",
+      "imei": "301434039267470",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14irlo5p0",
+      "label": "inReach Mini II 34",
+      "model": "inReach Mini 2",
+      "imei": "301434039067710",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14irls5tn",
+      "label": "inReach Mini II 35",
+      "model": "inReach Mini 2",
+      "imei": "301434039064190",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14irqaz5i",
+      "label": "inReach Mini II 36",
+      "model": "inReach Mini 2",
+      "imei": "301434039191460",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14ir2y5t6",
+      "label": "inReach Mini II 37",
+      "model": "inReach Mini 2",
+      "imei": "301434039169530",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14irpgagc",
+      "label": "inReach Mini II 38 (black)",
+      "model": "inReach Mini 2",
+      "imei": "301434039500080",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14irj7c0v",
+      "label": "inReach Mini II 39 (black)",
+      "model": "inReach Mini 2",
+      "imei": "301434039211650",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14irt8dl2",
+      "label": "inReach Mini II 40 (black)",
+      "model": "inReach Mini 2",
+      "imei": "301434039807420",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14irwu9vp",
+      "label": "inReach Mini II 41 (black)",
+      "model": "inReach Mini 2",
+      "imei": "301434039314620",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14iryo8zv",
+      "label": "inReach Mini II 42",
+      "model": "inReach Mini 2",
+      "imei": "301434039030110",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14irs74di",
+      "label": "inReach Mini II 43",
+      "model": "inReach Mini 2",
+      "imei": "301434038500810",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14irgwots",
+      "label": "inReach Mini II 44",
+      "model": "inReach Mini 2",
+      "imei": "301434039921880",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14irc9etc",
+      "label": "inReach Mini II 45",
+      "model": "inReach Mini 2",
+      "imei": "301434038504820",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14ir2xkjy",
+      "label": "inReach Mini II 46",
+      "model": "inReach Mini 2",
+      "imei": "301434039925860",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14ircghze",
+      "label": "inReach Mini II 47",
+      "model": "inReach Mini 2",
+      "imei": "301434039724600",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14irg9bby",
+      "label": "inReach Mini II 48",
+      "model": "inReach Mini 2",
+      "imei": "301434037895590",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14ir0axa7",
+      "label": "inReach Mini II 49",
+      "model": "inReach Mini 2",
+      "imei": "301434038504420",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mtle14irnc4nn",
+      "label": "inReach Mini II 50",
+      "model": "inReach Mini 2",
+      "imei": "301434039720620",
+      "plan": "Enabled/Basic"
+    }
+  ],
+  "logs": []
+}

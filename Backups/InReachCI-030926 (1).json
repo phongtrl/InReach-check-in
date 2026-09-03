@@ -1,0 +1,576 @@
+{
+  "app": "InReach Check-In",
+  "version": 1,
+  "exportedAt": "2026-09-03T12:59:19.488Z",
+  "devices": [
+    {
+      "id": "mt8nz4lrqtjlv",
+      "label": "inReach Mini II 11",
+      "model": "inReach Mini 2",
+      "imei": "301434032130080",
+      "plan": "Advanced"
+    },
+    {
+      "id": "mt8nz4lr4emim",
+      "label": "inReach Mini II 12",
+      "model": "inReach Mini 2",
+      "imei": "301434032034150",
+      "plan": "Advanced"
+    },
+    {
+      "id": "mt8nz4lrtdlwf",
+      "label": "inReach Mini II 13",
+      "model": "inReach Mini 2",
+      "imei": "301434032138100",
+      "plan": "Deactivated"
+    },
+    {
+      "id": "mt8nz4lrhhkmj",
+      "label": "inReach Mini II 14",
+      "model": "inReach Mini 2",
+      "imei": "301434032727090",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mt8nz4lr4nbli",
+      "label": "inReach Mini II 15",
+      "model": "inReach Mini 2",
+      "imei": "301434032036910",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mt8nz4lrxdrmy",
+      "label": "inReach Mini II 16",
+      "model": "inReach Mini 2",
+      "imei": "301434036584700",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mt8nz4lr2vpda",
+      "label": "inReach Mini II 17",
+      "model": "inReach Mini 2",
+      "imei": "301434036588640",
+      "plan": "Deactivated"
+    },
+    {
+      "id": "mt8nz4lrl2yqe",
+      "label": "inReach Mini II 18",
+      "model": "inReach Mini 2",
+      "imei": "301434036685930",
+      "plan": "Advanced"
+    },
+    {
+      "id": "mt8nz4lrz4uj8",
+      "label": "inReach Mini II 19",
+      "model": "inReach Mini 2",
+      "imei": "301434036789480",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mt8nz4lribv7b",
+      "label": "inReach Mini II 20",
+      "model": "inReach Mini 2",
+      "imei": "301434036788560",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mt8nz4lrnltlx",
+      "label": "inReach Mini II 21",
+      "model": "inReach Mini 2",
+      "imei": "301434036781880",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mt8nz4lr38dsa",
+      "label": "inReach Mini II 22",
+      "model": "inReach Mini 2",
+      "imei": "301434036890470",
+      "plan": "Advanced"
+    },
+    {
+      "id": "mt8nz4lrretxx",
+      "label": "inReach Mini II 23",
+      "model": "inReach Mini 2",
+      "imei": "301434036893270",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mt8nz4lrt4wcz",
+      "label": "inReach Mini II 24",
+      "model": "inReach Mini 2",
+      "imei": "301434036890090",
+      "plan": "Advanced"
+    },
+    {
+      "id": "mt8nz4lrei8zv",
+      "label": "inReach Mini II 25",
+      "model": "inReach Mini 2",
+      "imei": "301434036695910",
+      "plan": "Advanced"
+    },
+    {
+      "id": "mt8nz4lremz3r",
+      "label": "inReach Mini II 26",
+      "model": "inReach Mini 2",
+      "imei": "301434036897080",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mt8nz4lrcwqnr",
+      "label": "inReach Mini II 27",
+      "model": "inReach Mini 2",
+      "imei": "301434039397480",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mt8nz4lrdocbw",
+      "label": "inReach Mini II 28",
+      "model": "inReach Mini 2",
+      "imei": "301434039390960",
+      "plan": "Advanced"
+    },
+    {
+      "id": "mt8nz4lr9o0nm",
+      "label": "inReach Mini II 29",
+      "model": "inReach Mini 2",
+      "imei": "301434039397690",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mt8nz4lr3kgr8",
+      "label": "inReach Mini II 30",
+      "model": "inReach Mini 2",
+      "imei": "301434039390630",
+      "plan": "Advanced"
+    },
+    {
+      "id": "mt8nz4lrh56e5",
+      "label": "inReach Mini II 31",
+      "model": "inReach Mini 2",
+      "imei": "301434039193600",
+      "plan": "Suspend"
+    },
+    {
+      "id": "mt8nz4lr1dofw",
+      "label": "inReach Mini II 32",
+      "model": "inReach Mini 2",
+      "imei": "301434039068070",
+      "plan": "Suspend"
+    },
+    {
+      "id": "mt8nz4lrcha8y",
+      "label": "inReach Mini II 33",
+      "model": "inReach Mini 2",
+      "imei": "301434039267470",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mt8nz4lr6efpx",
+      "label": "inReach Mini II 34",
+      "model": "inReach Mini 2",
+      "imei": "301434039067710",
+      "plan": "Suspend"
+    },
+    {
+      "id": "mt8nz4lrpx7h0",
+      "label": "inReach Mini II 35",
+      "model": "inReach Mini 2",
+      "imei": "301434039064190",
+      "plan": "Suspend"
+    },
+    {
+      "id": "mt8nz4lrxmssh",
+      "label": "inReach Mini II 36",
+      "model": "inReach Mini 2",
+      "imei": "301434039191460",
+      "plan": "Advanced"
+    },
+    {
+      "id": "mt8nz4lrpcq1c",
+      "label": "inReach Mini II 37",
+      "model": "inReach Mini 2",
+      "imei": "301434039169530",
+      "plan": "Advanced"
+    },
+    {
+      "id": "mt8nz4lro7e0d",
+      "label": "inReach Mini II 38 (black)",
+      "model": "inReach Mini 2",
+      "imei": "301434039500080",
+      "plan": "Suspend"
+    },
+    {
+      "id": "mt8nz4lrvnk09",
+      "label": "inReach Mini II 39 (black)",
+      "model": "inReach Mini 2",
+      "imei": "301434039211650",
+      "plan": "Suspend"
+    },
+    {
+      "id": "mt8nz4lryr564",
+      "label": "inReach Mini II 40 (black)",
+      "model": "inReach Mini 2",
+      "imei": "301434039807420",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mt8nz4lrhs4hp",
+      "label": "inReach Mini II 41 (black)",
+      "model": "inReach Mini 2",
+      "imei": "301434039314620",
+      "plan": "Suspend"
+    },
+    {
+      "id": "mt8nz4lr285c4",
+      "label": "inReach Mini II 42",
+      "model": "inReach Mini 2",
+      "imei": "301434039030110",
+      "plan": "Suspend"
+    },
+    {
+      "id": "mt8nz4lrg6xye",
+      "label": "inReach Mini II 43",
+      "model": "inReach Mini 2",
+      "imei": "301434038500810",
+      "plan": "Advanced"
+    },
+    {
+      "id": "mt8nz4lrbmagr",
+      "label": "inReach Mini II 44",
+      "model": "inReach Mini 2",
+      "imei": "301434039921880",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mt8nz4lrdr4pa",
+      "label": "inReach Mini II 45",
+      "model": "inReach Mini 2",
+      "imei": "301434038504820",
+      "plan": "Advanced"
+    },
+    {
+      "id": "mt8nz4lrnposo",
+      "label": "inReach Mini II 46",
+      "model": "inReach Mini 2",
+      "imei": "301434039925860",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mt8nz4lr1l95a",
+      "label": "inReach Mini II 47",
+      "model": "inReach Mini 2",
+      "imei": "301434039724600",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mt8nz4lry4tqy",
+      "label": "inReach Mini II 48",
+      "model": "inReach Mini 2",
+      "imei": "301434037895590",
+      "plan": "Advanced"
+    },
+    {
+      "id": "mt8nz4lruy0ig",
+      "label": "inReach Mini II 49",
+      "model": "inReach Mini 2",
+      "imei": "301434038504420",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mt8nz4lr4713w",
+      "label": "inReach Mini II 50",
+      "model": "inReach Mini 2",
+      "imei": "301434039720620",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mt8o400976zaa",
+      "label": "GPSMAP 66i",
+      "model": "GPSMAP 66i",
+      "imei": "300434036509310",
+      "plan": "Enabled/Basic"
+    },
+    {
+      "id": "mt9ul1s6f9y3d",
+      "label": "inReach Mini II 51",
+      "model": "inReach Mini 2",
+      "imei": "301434039139750",
+      "plan": "Enabled/Basic"
+    }
+  ],
+  "logs": [
+    {
+      "id": "mt8ptp2t16gyd",
+      "deviceId": "mt8o400976zaa",
+      "person": "Martin Klug",
+      "action": "out",
+      "date": "2026-08-25T13:43:23.189Z",
+      "notes": ""
+    },
+    {
+      "id": "mt8ptve8m1n4n",
+      "deviceId": "mt8nz4lrqtjlv",
+      "person": "Kari Sletten",
+      "action": "out",
+      "date": "2026-08-25T13:43:31.376Z",
+      "notes": ""
+    },
+    {
+      "id": "mt8pu36z483j7",
+      "deviceId": "mt8nz4lr4emim",
+      "person": "Isabel Carter",
+      "action": "out",
+      "date": "2026-08-25T13:43:41.483Z",
+      "notes": ""
+    },
+    {
+      "id": "mt8qb1m8v20z7",
+      "deviceId": "mt8nz4lrhhkmj",
+      "person": "Bernard Bingen",
+      "action": "out",
+      "date": "2026-08-25T13:56:52.592Z",
+      "notes": ""
+    },
+    {
+      "id": "mt8qbaghsyr1u",
+      "deviceId": "mt8nz4lr4nbli",
+      "person": "Knut Stalsberg",
+      "action": "out",
+      "date": "2026-08-25T13:57:04.049Z",
+      "notes": ""
+    },
+    {
+      "id": "mt8qbxwes3kmr",
+      "deviceId": "mt8nz4lrxdrmy",
+      "person": "Gurli Meyer",
+      "action": "out",
+      "date": "2026-08-25T13:57:34.430Z",
+      "notes": ""
+    },
+    {
+      "id": "mt8qd9j2r8slz",
+      "deviceId": "mt8nz4lrl2yqe",
+      "person": "Kristine Nymoen",
+      "action": "out",
+      "date": "2026-08-25T13:58:36.158Z",
+      "notes": ""
+    },
+    {
+      "id": "mt8qdgeb2f4cg",
+      "deviceId": "mt8nz4lrz4uj8",
+      "person": "Deta Gasser",
+      "action": "out",
+      "date": "2026-08-25T13:58:45.059Z",
+      "notes": ""
+    },
+    {
+      "id": "mt8qds36ywgvt",
+      "deviceId": "mt8nz4lribv7b",
+      "person": "Anna Ksienzyk",
+      "action": "out",
+      "date": "2026-08-25T13:59:00.210Z",
+      "notes": ""
+    },
+    {
+      "id": "mt8qe2bjbzhgh",
+      "deviceId": "mt8nz4lrnltlx",
+      "person": "Mikis van Boeckel",
+      "action": "out",
+      "date": "2026-08-25T13:59:13.471Z",
+      "notes": ""
+    },
+    {
+      "id": "mt8qeh6272b5r",
+      "deviceId": "mt8nz4lr38dsa",
+      "person": "Morgan Ganerød",
+      "action": "out",
+      "date": "2026-08-25T13:59:32.714Z",
+      "notes": ""
+    },
+    {
+      "id": "mt8qhpnjo2o12",
+      "deviceId": "mt8nz4lrretxx",
+      "person": "Monika Mendelova",
+      "action": "out",
+      "date": "2026-08-25T14:02:03.679Z",
+      "notes": ""
+    },
+    {
+      "id": "mt8qi51now690",
+      "deviceId": "mt8nz4lrt4wcz",
+      "person": "Hanne-Kristin Paulsen",
+      "action": "out",
+      "date": "2026-08-25T14:02:23.627Z",
+      "notes": ""
+    },
+    {
+      "id": "mt8qqgef8zue9",
+      "deviceId": "mt8nz4lrei8zv",
+      "person": "Johannes Jakob",
+      "action": "out",
+      "date": "2026-08-25T14:08:51.591Z",
+      "notes": ""
+    },
+    {
+      "id": "mt8qqrretosh0",
+      "deviceId": "mt8nz4lremz3r",
+      "person": "Martin Buran",
+      "action": "out",
+      "date": "2026-08-25T14:09:06.314Z",
+      "notes": ""
+    },
+    {
+      "id": "mt8qr43u2vo87",
+      "deviceId": "mt8nz4lrcwqnr",
+      "person": "Terje Bjerkgård",
+      "action": "out",
+      "date": "2026-08-25T14:09:22.314Z",
+      "notes": ""
+    },
+    {
+      "id": "mt8qreaugly5j",
+      "deviceId": "mt8nz4lrdocbw",
+      "person": "Espen Torgersen",
+      "action": "out",
+      "date": "2026-08-25T14:09:35.526Z",
+      "notes": ""
+    },
+    {
+      "id": "mt8qropb0rljv",
+      "deviceId": "mt8nz4lr9o0nm",
+      "person": "Iain Henderson",
+      "action": "out",
+      "date": "2026-08-25T14:09:49.007Z",
+      "notes": ""
+    },
+    {
+      "id": "mt8qrxi12o7hc",
+      "deviceId": "mt8nz4lr3kgr8",
+      "person": "Ida Gunleiksrud",
+      "action": "out",
+      "date": "2026-08-25T14:10:00.409Z",
+      "notes": ""
+    },
+    {
+      "id": "mt8qs66vfhw1d",
+      "deviceId": "mt8nz4lrh56e5",
+      "person": "Åse Minde",
+      "action": "out",
+      "date": "2026-08-25T14:10:11.671Z",
+      "notes": ""
+    },
+    {
+      "id": "mt8r40dxoiqr1",
+      "deviceId": "mt8nz4lrcha8y",
+      "person": "Yuriy Maystrenko",
+      "action": "out",
+      "date": "2026-08-25T14:19:24.021Z",
+      "notes": ""
+    },
+    {
+      "id": "mt8r47sgccj9n",
+      "deviceId": "mt8nz4lr6efpx",
+      "person": "Tom Heldal",
+      "action": "out",
+      "date": "2026-08-25T14:19:33.616Z",
+      "notes": ""
+    },
+    {
+      "id": "mt8r4e1t92xlv",
+      "deviceId": "mt8nz4lrpx7h0",
+      "person": "Terje Solbakk",
+      "action": "out",
+      "date": "2026-08-25T14:19:41.729Z",
+      "notes": ""
+    },
+    {
+      "id": "mt8r4mvy1dxz3",
+      "deviceId": "mt8nz4lrxmssh",
+      "person": "Mari Arntsen",
+      "action": "out",
+      "date": "2026-08-25T14:19:53.182Z",
+      "notes": ""
+    },
+    {
+      "id": "mt9pk5kbgie9n",
+      "deviceId": "mt8nz4lr285c4",
+      "person": "Kjersti Høyvik",
+      "action": "out",
+      "date": "2026-08-26T06:23:44.171Z",
+      "notes": ""
+    },
+    {
+      "id": "mt9pkk1wzeqgs",
+      "deviceId": "mt8nz4lrg6xye",
+      "person": "Bertil Carlsen",
+      "action": "out",
+      "date": "2026-08-26T06:20:00.000Z",
+      "notes": ""
+    },
+    {
+      "id": "mt9pl2x8hrr49",
+      "deviceId": "mt8nz4lrdr4pa",
+      "person": "Reginald Hermanns",
+      "action": "out",
+      "date": "2026-08-26T06:24:00.000Z",
+      "notes": ""
+    },
+    {
+      "id": "mt9plcxk3l4kw",
+      "deviceId": "mt8nz4lry4tqy",
+      "person": "Katia Svendby",
+      "action": "out",
+      "date": "2026-08-26T06:24:00.000Z",
+      "notes": ""
+    },
+    {
+      "id": "mt9rrmthdxz5n",
+      "deviceId": "mt8nz4lrpcq1c",
+      "person": "Kristian Drivenes",
+      "action": "out",
+      "date": "2026-08-26T06:24:00.000Z",
+      "notes": ""
+    },
+    {
+      "id": "mticec0wdmthb",
+      "deviceId": "mt8nz4lrh56e5",
+      "person": "Åse Minde",
+      "action": "in",
+      "date": "2026-09-01T07:25:13.184Z",
+      "notes": ""
+    },
+    {
+      "id": "mtioikmx65odq",
+      "deviceId": "mt8nz4lryr564",
+      "person": "Phong Vuoc Tran",
+      "action": "out",
+      "date": "2026-09-01T13:04:26.361Z",
+      "notes": ""
+    },
+    {
+      "id": "mtjyxjs5aesr2",
+      "deviceId": "mt8nz4lr6efpx",
+      "person": "Tom Heldal",
+      "action": "in",
+      "date": "2026-09-02T10:43:47.430Z",
+      "notes": ""
+    },
+    {
+      "id": "mtjyxmq3fgwvy",
+      "deviceId": "mt8nz4lrpx7h0",
+      "person": "Terje Solbakk",
+      "action": "in",
+      "date": "2026-09-02T10:43:51.243Z",
+      "notes": ""
+    },
+    {
+      "id": "mtl897tew13as",
+      "deviceId": "mt8nz4lr285c4",
+      "person": "Kjersti Høyvik",
+      "action": "in",
+      "date": "2026-09-03T07:50:00.000Z",
+      "notes": "",
+      "plan": "Suspend"
+    }
+  ]
+}

@@ -895,7 +895,67 @@ $('#exportBtn').addEventListener('click', () => {
   URL.revokeObjectURL(url);
 });
 
-$('#backupBtn').addEventListener('click', () => {
+/* ---------- Backup folder (File System Access API) ----------
+   Lets the user grant access to their Backups folder once; afterwards backups
+   are saved into / imported from it directly. Falls back to normal
+   download/upload when the API is unavailable or access is denied. */
+const FS_SUPPORTED = 'showDirectoryPicker' in window;
+let _backupDir = null;
+
+// Tiny IndexedDB key/value store to persist the directory handle across sessions.
+function idb(store, mode, fn) {
+  return new Promise((resolve, reject) => {
+    const open = indexedDB.open('inreach-fs', 1);
+    open.onupgradeneeded = () => open.result.createObjectStore('kv');
+    open.onerror = () => reject(open.error);
+    open.onsuccess = () => {
+      const tx = open.result.transaction(store, mode);
+      const req = fn(tx.objectStore(store));
+      tx.oncomplete = () => resolve(req && req.result);
+      tx.onerror = () => reject(tx.error);
+    };
+  });
+}
+const idbGet = (key) => idb('kv', 'readonly', (s) => s.get(key));
+const idbSet = (key, val) => idb('kv', 'readwrite', (s) => s.put(val, key));
+
+// Return the remembered Backups folder handle, prompting the user if needed.
+async function getBackupDir(interactive) {
+  if (!FS_SUPPORTED) return null;
+  try {
+    if (!_backupDir) _backupDir = await idbGet('backupDir');
+    if (_backupDir) {
+      let perm = await _backupDir.queryPermission({ mode: 'readwrite' });
+      if (perm !== 'granted' && interactive) {
+        perm = await _backupDir.requestPermission({ mode: 'readwrite' });
+      }
+      if (perm === 'granted') return _backupDir;
+    }
+    if (interactive) {
+      const dir = await window.showDirectoryPicker({ id: 'inreach-backups', mode: 'readwrite' });
+      _backupDir = dir;
+      await idbSet('backupDir', dir);
+      return dir;
+    }
+  } catch (e) {
+    if (e && e.name === 'AbortError') return null; // user cancelled — caller falls back
+  }
+  return null;
+}
+
+// Trigger a plain browser download (fallback when there's no folder access).
+function anchorDownload(filename, text) {
+  const blob = new Blob([text], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ---------- Download backup ---------- */
+$('#backupBtn').addEventListener('click', async () => {
   const backup = {
     app: 'InReach Check-In',
     version: 1,
@@ -907,20 +967,70 @@ $('#backupBtn').addEventListener('click', () => {
   const d = new Date();
   const pad = (n) => String(n).padStart(2, '0');
   const stamp = `${pad(d.getDate())}${pad(d.getMonth() + 1)}${String(d.getFullYear()).slice(-2)}`;
+  const filename = `InReachCI-${stamp}.json`;
+  const text = JSON.stringify(backup, null, 2);
 
-  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `InReachCI-${stamp}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
+  const dir = await getBackupDir(true);
+  if (dir) {
+    try {
+      const fh = await dir.getFileHandle(filename, { create: true });
+      const w = await fh.createWritable();
+      await w.write(text);
+      await w.close();
+      toast('Backup saved to your Backups folder.');
+      return;
+    } catch (e) {
+      if (e && e.name === 'AbortError') return;
+      // No access / write failed — fall through to a normal download.
+    }
+  }
+  anchorDownload(filename, text);
   toast('Backup downloaded.');
 });
 
 let pendingImport = null;
 
-$('#importBtn').addEventListener('click', () => $('#backupFile').click());
+/* ---------- Import backup ---------- */
+$('#importBtn').addEventListener('click', async () => {
+  if (FS_SUPPORTED) {
+    try {
+      const dir = await getBackupDir(true);
+      const opts = {
+        id: 'inreach-backups',
+        multiple: false,
+        types: [{ description: 'InReach backup', accept: { 'application/json': ['.json'] } }],
+      };
+      if (dir) opts.startIn = dir;
+      const [fh] = await window.showOpenFilePicker(opts);
+      const file = await fh.getFile();
+      handleImportText(await file.text());
+      return;
+    } catch (e) {
+      if (e && e.name === 'AbortError') return; // user cancelled
+      // Unsupported call or no access — fall back to the file input below.
+    }
+  }
+  $('#backupFile').click();
+});
+
+// Validate parsed backup JSON and show the replace-all confirmation.
+function handleImportText(text) {
+  let data;
+  try { data = JSON.parse(text); } catch { toast('Invalid backup file.', true); return; }
+  if (!data || !Array.isArray(data.devices) || !Array.isArray(data.logs)) {
+    toast('Not a valid InReach backup.', true);
+    return;
+  }
+  pendingImport = data;
+  const when = data.exportedAt ? formatDateTime(data.exportedAt) : 'an unknown date';
+  $('#importConfirm').innerHTML = `
+    <span class="ic-text">Replace all current data with backup from ${escapeHtml(when)} —
+      <strong>${data.devices.length}</strong> device${data.devices.length === 1 ? '' : 's'},
+      <strong>${data.logs.length}</strong> log${data.logs.length === 1 ? '' : 's'}?</span>
+    <button type="button" class="btn ghost" data-import-cancel>Cancel</button>
+    <button type="button" class="btn danger" data-import-confirm>Replace all</button>`;
+  $('#importConfirm').hidden = false;
+}
 
 $('#backupFile').addEventListener('change', (e) => {
   const file = e.target.files && e.target.files[0];
@@ -928,23 +1038,7 @@ $('#backupFile').addEventListener('change', (e) => {
   if (!file) return;
 
   const reader = new FileReader();
-  reader.onload = () => {
-    let data;
-    try { data = JSON.parse(reader.result); } catch { toast('Invalid backup file.', true); return; }
-    if (!data || !Array.isArray(data.devices) || !Array.isArray(data.logs)) {
-      toast('Not a valid InReach backup.', true);
-      return;
-    }
-    pendingImport = data;
-    const when = data.exportedAt ? formatDateTime(data.exportedAt) : 'an unknown date';
-    $('#importConfirm').innerHTML = `
-      <span class="ic-text">Replace all current data with backup from ${escapeHtml(when)} —
-        <strong>${data.devices.length}</strong> device${data.devices.length === 1 ? '' : 's'},
-        <strong>${data.logs.length}</strong> log${data.logs.length === 1 ? '' : 's'}?</span>
-      <button type="button" class="btn ghost" data-import-cancel>Cancel</button>
-      <button type="button" class="btn danger" data-import-confirm>Replace all</button>`;
-    $('#importConfirm').hidden = false;
-  };
+  reader.onload = () => handleImportText(reader.result);
   reader.onerror = () => toast('Could not read file.', true);
   reader.readAsText(file);
 });
@@ -1902,8 +1996,25 @@ function initDatePicker() {
   });
 }
 
+/* If a deployment snapshot is baked into the page, apply it once per new deploy.
+   Inactive during local development (the global is only injected at deploy time). */
+function applyDeploymentSeed() {
+  const seed = (typeof window !== 'undefined') && window.__INREACH_SEED__;
+  if (!seed || !Array.isArray(seed.devices) || !Array.isArray(seed.logs)) return;
+  if (localStorage.getItem('inreach.deployedAt') === (seed.exportedAt || '')) return;
+  devices = seed.devices;
+  logs = seed.logs;
+  save(STORE.devices, devices);
+  save(STORE.logs, logs);
+  // Deployed data is authoritative — skip default seeding/migration steps.
+  ['inreach.seeded', 'inreach.gpsmap66i', 'inreach.fleet.v3',
+   'inreach.imei.v1', 'inreach.imei.v2'].forEach((k) => localStorage.setItem(k, '1'));
+  localStorage.setItem('inreach.deployedAt', seed.exportedAt || '1');
+}
+
 /* ---------- Init ---------- */
 function init() {
+  applyDeploymentSeed();
   initTabs();
   initDatePicker();
   setPickerDate(new Date());
