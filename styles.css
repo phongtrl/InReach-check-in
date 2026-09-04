@@ -423,6 +423,26 @@ main { max-width: 1080px; margin: 0 auto; padding: 8px 32px 56px; }
 .licence-chip.Suspend { border-left-color: var(--muted); }
 .licence-chip.Deactivated { border-left-color: var(--danger); }
 
+/* Licence explainer: what each of the 5 plans includes */
+.licence-legend { margin-top: 22px; padding-top: 20px; border-top: 1px solid var(--line-soft); }
+.licence-legend .licence-note { margin: 4px 0 16px; }
+.licence-defs { display: flex; flex-direction: column; gap: 14px; margin: 0; }
+.licence-def {
+  background: var(--surface-2);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
+  padding: 13px 16px;
+}
+.licence-def dt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.lic-price { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.licence-def dd { margin: 0; font-size: 13px; line-height: 1.55; color: var(--ink-soft); }
+.licence-def dd strong { color: var(--ink); font-weight: 600; }
+
 /* ---------- Forms ---------- */
 .form { display: flex; flex-direction: column; gap: 18px; }
 .field { display: flex; flex-direction: column; gap: 7px; }

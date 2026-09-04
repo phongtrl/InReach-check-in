@@ -895,55 +895,8 @@ $('#exportBtn').addEventListener('click', () => {
   URL.revokeObjectURL(url);
 });
 
-/* ---------- Backup folder (File System Access API) ----------
-   Lets the user grant access to their Backups folder once; afterwards backups
-   are saved into / imported from it directly. Falls back to normal
-   download/upload when the API is unavailable or access is denied. */
-const FS_SUPPORTED = 'showDirectoryPicker' in window;
-let _backupDir = null;
-
-// Tiny IndexedDB key/value store to persist the directory handle across sessions.
-function idb(store, mode, fn) {
-  return new Promise((resolve, reject) => {
-    const open = indexedDB.open('inreach-fs', 1);
-    open.onupgradeneeded = () => open.result.createObjectStore('kv');
-    open.onerror = () => reject(open.error);
-    open.onsuccess = () => {
-      const tx = open.result.transaction(store, mode);
-      const req = fn(tx.objectStore(store));
-      tx.oncomplete = () => resolve(req && req.result);
-      tx.onerror = () => reject(tx.error);
-    };
-  });
-}
-const idbGet = (key) => idb('kv', 'readonly', (s) => s.get(key));
-const idbSet = (key, val) => idb('kv', 'readwrite', (s) => s.put(val, key));
-
-// Return the remembered Backups folder handle, prompting the user if needed.
-async function getBackupDir(interactive) {
-  if (!FS_SUPPORTED) return null;
-  try {
-    if (!_backupDir) _backupDir = await idbGet('backupDir');
-    if (_backupDir) {
-      let perm = await _backupDir.queryPermission({ mode: 'readwrite' });
-      if (perm !== 'granted' && interactive) {
-        perm = await _backupDir.requestPermission({ mode: 'readwrite' });
-      }
-      if (perm === 'granted') return _backupDir;
-    }
-    if (interactive) {
-      const dir = await window.showDirectoryPicker({ id: 'inreach-backups', mode: 'readwrite' });
-      _backupDir = dir;
-      await idbSet('backupDir', dir);
-      return dir;
-    }
-  } catch (e) {
-    if (e && e.name === 'AbortError') return null; // user cancelled — caller falls back
-  }
-  return null;
-}
-
-// Trigger a plain browser download (fallback when there's no folder access).
+// Trigger a browser download. Uses the same mechanism as the report PDF/CSV, so
+// every export lands in the browser's configured download folder.
 function anchorDownload(filename, text) {
   const blob = new Blob([text], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -955,7 +908,7 @@ function anchorDownload(filename, text) {
 }
 
 /* ---------- Download backup ---------- */
-$('#backupBtn').addEventListener('click', async () => {
+$('#backupBtn').addEventListener('click', () => {
   const backup = {
     app: 'InReach Check-In',
     version: 1,
@@ -967,51 +920,14 @@ $('#backupBtn').addEventListener('click', async () => {
   const d = new Date();
   const pad = (n) => String(n).padStart(2, '0');
   const stamp = `${pad(d.getDate())}${pad(d.getMonth() + 1)}${String(d.getFullYear()).slice(-2)}`;
-  const filename = `InReachCI-${stamp}.json`;
-  const text = JSON.stringify(backup, null, 2);
-
-  const dir = await getBackupDir(true);
-  if (dir) {
-    try {
-      const fh = await dir.getFileHandle(filename, { create: true });
-      const w = await fh.createWritable();
-      await w.write(text);
-      await w.close();
-      toast('Backup saved to your Backups folder.');
-      return;
-    } catch (e) {
-      if (e && e.name === 'AbortError') return;
-      // No access / write failed — fall through to a normal download.
-    }
-  }
-  anchorDownload(filename, text);
+  anchorDownload(`InReachCI-${stamp}.json`, JSON.stringify(backup, null, 2));
   toast('Backup downloaded.');
 });
 
 let pendingImport = null;
 
 /* ---------- Import backup ---------- */
-$('#importBtn').addEventListener('click', async () => {
-  if (FS_SUPPORTED) {
-    try {
-      const dir = await getBackupDir(true);
-      const opts = {
-        id: 'inreach-backups',
-        multiple: false,
-        types: [{ description: 'InReach backup', accept: { 'application/json': ['.json'] } }],
-      };
-      if (dir) opts.startIn = dir;
-      const [fh] = await window.showOpenFilePicker(opts);
-      const file = await fh.getFile();
-      handleImportText(await file.text());
-      return;
-    } catch (e) {
-      if (e && e.name === 'AbortError') return; // user cancelled
-      // Unsupported call or no access — fall back to the file input below.
-    }
-  }
-  $('#backupFile').click();
-});
+$('#importBtn').addEventListener('click', () => $('#backupFile').click());
 
 // Validate parsed backup JSON and show the replace-all confirmation.
 function handleImportText(text) {
